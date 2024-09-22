@@ -1,4 +1,7 @@
-all: asm clean boot
+all: clear asm clean boot
+
+clear:
+	rm boot.img
 
 asm:
 	nasm -fbin boot.asm -o boot.bin
