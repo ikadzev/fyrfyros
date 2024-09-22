@@ -1,6 +1,7 @@
 all: clear asm clean boot
 
 clear:
+	touch boot.img
 	rm boot.img
 
 asm:
@@ -9,7 +10,7 @@ asm:
 	dd if=boot.bin of=boot.img conv=notrunc
 
 boot:
-	qemu-system-x86_64 -hda boot.img -m 512
+	qemu-system-i386 -hda boot.img -m 512
 
 clean:
 	rm boot.bin
