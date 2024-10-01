@@ -1,12 +1,17 @@
 [BITS 16]
 
-mov ax, 0x7C0
-mov ds, ax
-mov ah, 0xE
-xor bx, bx
+	cli
+	xor ax, ax
+	mov ss, ax
+	mov sp, 0x7C00
+	sti
 
-loop:
-	mov al, [bx + data]
+	mov ax, 0x7C0
+	mov ds, ax
+	mov ah, 0xE
+	xor bx, bx
+
+loop:	mov al, [bx + data]
 	cmp al, 0 
 	jz end
 	int 0x10
