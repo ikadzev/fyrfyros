@@ -8,12 +8,7 @@
 	mov ax, 0x7C0
 	mov ds, ax
 
-        mov di, 768
-        call driver_read
-        mov di, ok
-        call print_str
-end:
-	jmp end
+        mov di, 100
 
 driver_read: ;input: cx -- адрес памяти начиная с которого грузим ядро
              ;       di -- количество загружаеммых секторов
@@ -42,26 +37,13 @@ driver_read: ;input: cx -- адрес памяти начиная с котор�
         mov ah, 2
         mov al, 1        
         int 0x13
-        jc error
         dec di
         jmp .loop
 .end:
-       ret
-        
-error:
-    mov di, 22222
-    call print
-jmp end
-
-
-ok:
-        db "OK", 0x0A, 0x0D, 0
-fault:
-        db "FAULT", 0x0A, 0x0D, 0
-
-%include 'print.asm'
+	jmp .end
 
 times 510-($-$$) db 0
 dw 0xAA55
 
+times 393214-($-$$) db 0xff
 
