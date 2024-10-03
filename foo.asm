@@ -1,4 +1,4 @@
 [BITS 16]
-times 393214-($-$$) db 0xff
+times 392714-($-$$) db 0xff
 dw 0xAA55
 
