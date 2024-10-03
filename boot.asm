@@ -25,7 +25,7 @@ driver_read: ;input: cx -- адрес памяти начиная с котор�
         add si, 0x20
         cmp di, 0
         jz .end
-        
+  
         inc cl
         cmp cl, 19
         jnz .post
@@ -49,13 +49,14 @@ driver_read: ;input: cx -- адрес памяти начиная с котор�
        ret
         
 error:
-    mov di, 22222
-    call print
+    mov di, fault
+    call print_str
 jmp end
 
 
 ok:
         db "OK", 0x0A, 0x0D, 0
+        
 fault:
         db "FAULT", 0x0A, 0x0D, 0
 

@@ -26,7 +26,7 @@ print:
     int 0x10                    ; выводим символ
     dec si                     ; уменьшаем счётчик цифр
     jnz .print_loop             ; если ещё есть цифры, повторяем цикл
-    mov al, 0x0A
+    mov al, 0xA
     mov ah,0xE
     int 0x10
     mov al, 0x0D
