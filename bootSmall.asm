@@ -9,7 +9,7 @@
 	mov ds, ax
 
 driver_read: 
-        mov cx, 1 
+        mov cx, 0 
         xor dh, dh
         mov si, 0x1fc0
         mov es, si
@@ -60,7 +60,7 @@ driver_read:
         ;----
         int 0x13
   ;      jc .error
-        cmp ch, 21
+        cmp ch, 22
         jnz .loop
         
  ;       mov di, ok
