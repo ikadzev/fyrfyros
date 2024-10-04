@@ -8,7 +8,7 @@
 	mov ax, 0x7C0
 	mov ds, ax
 
-        mov di, 768
+        mov di, 1;768
         call driver_read
         mov di, ok
         call print_str
@@ -34,7 +34,7 @@ driver_read: ;input: cx -- адрес памяти начиная с котор�
         cmp dh, 2
         jnz .post
         mov dh, 0
-        cmp ch, 79
+        cmp ch, 1
         jz .end
         inc ch   
 .post:      

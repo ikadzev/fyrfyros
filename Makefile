@@ -21,7 +21,6 @@ asm2:
 boot:
 	qemu-system-i386 -fda boot.img -monitor stdio 
 
-
 clean:
 	rm boot.bin
 	rm foo.bin
