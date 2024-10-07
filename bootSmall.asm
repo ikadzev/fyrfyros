@@ -9,9 +9,6 @@
 	mov ds, ax
 
 driver_read: 
-
-;mov di, 0
-
         mov cx, 0 
         mov dh, 0
         mov si, 0x1fe0
@@ -26,22 +23,17 @@ driver_read:
         xor dh, 1   
 .post:      
         mov es, si
+        mov di, 4
+.return:
         mov ax, 0x0201        
         int 0x13
-;mov di,cx 
-;shr di, 8
-;call print
-;mov di, dx
-;shr di, 8
-;call print
-;mov di, cx
-;shl di, 8
-;shr di, 8
-;call print
-;jc .end
+        jc .error
         cmp ch, 22
         jnz .loop
-       
+        mov di, 1
+.error:
+        sub di, 1
+        jnz .return
 .end:
 	jmp .end
 
@@ -49,5 +41,6 @@ driver_read:
 
 times 510-($-$$) db 0
 dw 0xAA55
-times 393216-($-$$) db 0xff
+times 393215-($-$$) db 0xff
+db 0xAA
 
