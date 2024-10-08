@@ -1,4 +1,4 @@
-all: clear asm1 checkSize asm2 clean boot
+all: clear asm1 checkSize asm2 clean boot checkAnswer
 
 clear:
 	touch boot.img
@@ -20,6 +20,10 @@ asm2:
 
 boot:
 	qemu-system-i386 -fda boot.img -monitor stdio 
+
+checkAnswer:
+	python3 checksum.py dump.img
+	python3 checksum.py boot.img
 
 clean:
 	rm boot.bin

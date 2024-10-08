@@ -1,28 +1,4 @@
 [BITS 16]
-times 1024 db 0x46
-times 1024 db 0x48
-times 1024 db 0x49
-times 1024 db 0x50
-times 1024 db 0x51
-times 1024 db 0x52
-times 1024 db 0x53
-times 1024 db 0x54
-times 1024 db 0x55
-times 1024 db 0x56
-times 1024 db 0x57
-times 1024 db 0x58
-times 1024 db 0x59
-times 1024 db 0x60
-times 1024 db 0x61
-times 1024 db 0x62
-times 1024 db 0x63
-times 1024 db 0x64
-times 1024 db 0x65
-times 1024 db 0x66
-times 1024 db 0x67
-times 1024 db 0x68
-times 1024 db 0x69
-dw 0x9898
-times 196357-($-$$) dw 0xffff
-dw 0xAA55
+times 393215-($-$$) db 0x48
+db 0xAA
 
