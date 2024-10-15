@@ -4,7 +4,7 @@ clear:
 	touch boot.img
 	rm boot.img
 
-asm:
+asm1:
 	nasm -fbin boot.asm -o boot.bin
 	nasm -fbin foo.asm -o foo.bin
 
