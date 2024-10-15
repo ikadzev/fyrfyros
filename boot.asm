@@ -5,11 +5,12 @@
 	mov sp, 0x7C00
 	sti
 
-	mov ax, 0x7C0
-	mov ds, ax
+;	mov ax, 0x7C0
+;	mov ds, ax
 
-driver_read: 
-        mov cx, 0 
+driver_read:
+	push bx 
+        pop cx 
         mov dh, 0
         mov si, 0x1fe0
 .loop:
@@ -29,7 +30,7 @@ driver_read:
         jc .error
         cmp si, 0x7fe0
         jnz .loop
-        mov di, 1
+        jmp .end
 .error:
         sub di, 1
         jnz .return
