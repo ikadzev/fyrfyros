@@ -1,5 +1,2 @@
-boot.img
-foo.img
-dump.img
-**/*.bin
-
+*.bin
+*.img

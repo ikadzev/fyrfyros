@@ -7,7 +7,7 @@ clear:
 	rm foo.img
 
 asm1:
-	nasm -fbin bootSmall.asm -o boot.bin
+	nasm -fbin boot.asm -o boot.bin
 	nasm -fbin foo.asm -o foo.bin
 
 checkSize:
@@ -19,7 +19,7 @@ asm2:
 	dd if=foo.bin of=boot.img conv=notrunc seek=1
 
 boot:
-	qemu-system-i386 -fda boot.img -monitor stdio 
+	qemu-system-i386 -fda boot.img -monitor stdio # manual "memsave 0x20000 0x60000 dump.img"
 
 checkAnswer:
 	python3 checksum.py dump.img
