@@ -11,7 +11,7 @@ asm1:
 	nasm -fbin foo.asm -o foo.bin
 
 checkSize:
-	if [ $(wc -c "foo.bin" | awk '{print $1}') != 392716 ]; then echo "File size \"foo.bin\" not equal 384kb !"; exit 1; fi
+	if [ "$(shell wc -c "foo.bin")" != "392704 foo.bin" ]; then echo "File size \"foo.bin\" not equal 384kb !"; exit 1; fi
 
 asm2:
 	dd if=/dev/zero of=boot.img bs=1024 count=1440
