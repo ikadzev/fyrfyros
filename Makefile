@@ -1,29 +1,27 @@
-all: clear asm1 checkSize asm2 clean boot checkAnswer
+all: clear build clean boot
+build: vbr kernel img
 
 clear:
 	touch boot.img
-	touch foo.img
 	rm boot.img
-	rm foo.img
 
-asm1:
+vbr:
 	nasm -fbin boot.asm -o boot.bin
-	nasm -fbin foo.asm -o foo.bin
 
-checkSize:
-	if [ "$(shell wc -c "foo.bin")" != "392704 foo.bin" ]; then echo "File size \"foo.bin\" not equal 384kb !"; exit 1; fi
+kernel:
+	gcc -m32 -ffreestanding -fno-pie -c -o kernel.o kernel.c
+	ld -m i386pe -o kernel.tmp -Ttext=0x20200 kernel.o
+	objcopy -I pe-i386 -O binary kernel.tmp kernel.bin
 
-asm2:
+img:
 	dd if=/dev/zero of=boot.img bs=1024 count=1440
 	dd if=boot.bin of=boot.img conv=notrunc
-	dd if=foo.bin of=boot.img conv=notrunc seek=1
+	dd if=kernel.bin of=boot.img conv=notrunc seek=1
 
 boot:
-	qemu-system-i386 -fda boot.img -monitor stdio # manual "memsave 0x20000 0x60000 dump.img"
-
-checkAnswer:
-	python3 checksum.py dump.img
-	python3 checksum.py boot.img
+	qemu-system-i386 -fda boot.img -monitor stdio
 
 clean:
-	rm boot.bin
+	rm *.bin
+	rm kernel.o
+	rm kernel.tmp
