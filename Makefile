@@ -2,7 +2,9 @@ all: clear asm1 checkSize asm2 clean boot checkAnswer
 
 clear:
 	touch boot.img
+	touch foo.img
 	rm boot.img
+	rm foo.img
 
 asm1:
 	nasm -fbin boot.asm -o boot.bin
