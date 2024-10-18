@@ -8,14 +8,11 @@
 	mov ax, 0x7C0
 	mov ds, ax
 
-vbr_copy:
-        ; TODO VBR copy to 0x20000
-
 driver_read:
 	push bx 
         pop cx 
         mov dh, 0
-        mov si, 0x2000
+        mov si, 0x1FE0
 .loop:
         add si, 0x20
         inc cl
@@ -31,7 +28,7 @@ driver_read:
         mov ax, 0x0201        
         int 0x13
         jc .error
-        cmp si, 0x7fe0
+        cmp si, 0x7FE0
         jnz .loop
         jmp protected_mode_enable
 .error:
@@ -63,14 +60,14 @@ gdt_start:
         dq 0x0
 gdt_code:
         dw 0xFFFF
-        dw 0x0200
-        dw 0x9A02
-        dw 0x004F
+        dw 0x0000
+        dw 0x009A ; 1001 1010
+        dw 0xFC00 ; 1111 1100
 gdt_data:
         dw 0xFFFF
         dw 0x0000
-        dw 0x9200
-        dw 0x00CF
+        dw 0x0092 ; 1001 0010
+        dw 0xFC00 ; 1111 1100
 gdt_end:
 
 gdt_descriptor:

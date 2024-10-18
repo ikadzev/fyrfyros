@@ -1,5 +1,6 @@
 all: clear build clean boot
 build: vbr kernel img
+clr: clear clean
 
 clear:
 	touch boot.img
