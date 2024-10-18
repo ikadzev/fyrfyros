@@ -40,13 +40,13 @@ driver_read:
 protected_mode_enable:
         cli
         lgdt [gdt_descriptor]
+        mov eax, cr0
+        or al, 1
+        mov cr0, eax
         jmp CODE_SEG:protected_mode_tramplin + 0x7C00
 
 [BITS 32]
 protected_mode_tramplin:
-        mov eax, cr0
-        or al, 1
-        mov cr0, eax
         mov bx, DATA_SEG
         mov ds, bx
         mov ss, bx
