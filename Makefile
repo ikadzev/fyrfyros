@@ -10,8 +10,11 @@ vbr:
 	nasm -fbin boot.asm -o boot.bin
 
 kernel:
-	gcc -m32 -ffreestanding -fno-pie -c -o kernel.o kernel.c
-	ld -m i386pe -o kernel.tmp -Ttext=0x20200 kernel.o
+	gcc -m32 -ffreestanding -fno-pie -c -o bin/kernel.o kernel.c
+	gcc -m32 -ffreestanding -fno-pie -c -o bin/vga_driver.o source/vga_driver.c
+	gcc -m32 -ffreestanding -fno-pie -c -o bin/stack_chk_fail.o source/stack_chk_fail.c
+	gcc -m32 -ffreestanding -fno-pie -c -o bin/printf.o source/printf.c
+	ld -m i386pe -o kernel.tmp -Ttext=0x20200 bin/kernel.o bin/vga_driver.o bin/stack_chk_fail.o bin/printf.o
 	objcopy -I pe-i386 -O binary kernel.tmp kernel.bin
 
 img:
@@ -26,3 +29,4 @@ clean:
 	rm *.bin
 	rm kernel.o
 	rm kernel.tmp
+
