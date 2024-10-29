@@ -1,32 +1,38 @@
-all: clear build clean boot
-build: vbr kernel img
-clr: clear clean
+TARGET := boot
+KERNEL := kernel
 
-clear:
-	touch boot.img
-	rm boot.img
+BUILD_DIR = ./bin
+SOURCE_DIR = ./source
+SRCS = $(shell find $(SOURCE_DIR) -name '*.c')
+OBJS := $(SRCS:$(SOURCE_DIR)/%.c=$(BUILD_DIR)/%.o)
 
-vbr:
-	nasm -fbin boot.asm -o boot.bin
+CFLAGS := -m32 -ffreestanding -fno-pie -c
+LDFLAGS := -m i386pe -Ttext=0x20200
+OBJFLAGS := -I pe-i386 -O binary
 
-kernel:
-	gcc -m32 -ffreestanding -fno-pie -c -o bin/kernel.o kernel.c
-	gcc -m32 -ffreestanding -fno-pie -c -o bin/vga_driver.o source/vga_driver.c
-	gcc -m32 -ffreestanding -fno-pie -c -o bin/stack_chk_fail.o source/stack_chk_fail.c
-	gcc -m32 -ffreestanding -fno-pie -c -o bin/printf.o source/printf.c
-	ld -m i386pe -o kernel.tmp -Ttext=0x20200 bin/kernel.o bin/vga_driver.o bin/stack_chk_fail.o bin/printf.o
-	objcopy -I pe-i386 -O binary kernel.tmp kernel.bin
+execute: $(TARGET).img
+	qemu-system-i386 -fda $< -monitor stdio
 
-img:
-	dd if=/dev/zero of=boot.img bs=1024 count=1440
-	dd if=boot.bin of=boot.img conv=notrunc
-	dd if=kernel.bin of=boot.img conv=notrunc seek=1
+$(TARGET).img: $(BUILD_DIR)/$(KERNEL).bin $(BUILD_DIR)/$(TARGET).bin
+	dd if=/dev/zero of=$@ bs=1024 count=1440
+	dd if=$(BUILD_DIR)/$(TARGET).bin of=$@ conv=notrunc
+	dd if=$(BUILD_DIR)/$(KERNEL).bin of=$@ conv=notrunc seek=1
 
-boot:
-	qemu-system-i386 -fda boot.img -monitor stdio
+$(BUILD_DIR)/$(TARGET).bin: $(TARGET).asm
+	nasm -fbin $< -o $@
+
+$(BUILD_DIR)/$(KERNEL).bin: $(BUILD_DIR)/$(KERNEL).o $(OBJS)
+	echo $(OBJS)
+	ld $(LDFLAGS) -o $(BUILD_DIR)/$(KERNEL).tmp $^
+	objcopy $(OBJFLAGS) $(BUILD_DIR)/$(KERNEL).tmp $(BUILD_DIR)/$(KERNEL).bin
+
+$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.c
+	mkdir -p $(BUILD_DIR)
+	gcc $(CFLAGS) -o $@ $<
+
+$(BUILD_DIR)/$(KERNEL).o: $(KERNEL).c
+	mkdir -p $(BUILD_DIR)
+	gcc $(CFLAGS) -o $@ $(KERNEL).c
 
 clean:
-	rm *.bin
-	rm bin/kernel.o
-	rm kernel.tmp
-
+	rm -r $(BUILD_DIR)
