@@ -27,6 +27,6 @@ boot:
 
 clean:
 	rm *.bin
-	rm kernel.o
+	rm bin/kernel.o
 	rm kernel.tmp
 

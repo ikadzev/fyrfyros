@@ -1,5 +1,6 @@
 #include "source/headers/vga_driver.h"
 #include "source/headers/va_list.h"
+#include "source/headers/printf.h"
 
 void test(int, ...);
 
