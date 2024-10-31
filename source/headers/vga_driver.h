@@ -52,6 +52,7 @@ void vga_clear_screen();
 void vga_print_char(char sym, color_front, color_back, int, int);
 void vga_print_char_carriage(char sym, color_front, color_back);
 void vga_shift_down_line();
+void vga_shift_up_line();
 void vga_error();
 
 #endif //FYRFYROS_VGA_DRIVER_H
