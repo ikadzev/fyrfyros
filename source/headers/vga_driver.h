@@ -49,8 +49,9 @@ void carriage_set_position(unsigned short x, unsigned short y); //задаёт �
 
 void vga_init();
 void vga_clear_screen();
-void vga_print_char(char sym, color_front, color_back, int, int);
+void vga_print_char(char sym, color_front, color_back, unsigned short, unsigned short);
 void vga_print_char_carriage(char sym, color_front, color_back);
+void vga_scroll_line(char flag_down);
 void vga_shift_down_line();
 void vga_shift_up_line();
 void vga_error();

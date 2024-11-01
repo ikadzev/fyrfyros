@@ -1,5 +1,6 @@
 //
 // Created by modnick on 25.10.2024.
+// Update by RostyanYandexLyceumCheeeeck on 01.11.2024.
 //
 
 #include "headers/vga_driver.h"
@@ -11,38 +12,56 @@ struct{
 } carriage;
 
 
-void carriage_inc(){
-//    if (carriage.x == SIZE_X_DISPLAY - 1) {
-//        carriage.x = 0;
-//        carriage.y++;
-//    } else {
-//        carriage.x++;
-//    }
+void carriage_inc() {
     carriage.x++;
     carriage.y += carriage.x / SIZE_X_DISPLAY;
     carriage.x %= SIZE_X_DISPLAY;
 
-    if (carriage.y == SIZE_Y_DISPLAY - 1) {
+    while (carriage.y >= SIZE_Y_DISPLAY) {
         carriage.y--;
         vga_shift_down_line();
     }
-    unsigned long pos = START_DISPLAY_ADDRESS + 2*(SIZE_X_DISPLAY * carriage.y + carriage.x);
-    carriage.now_char = *((unsigned short*) pos);
-    pos = START_DISPLAY_ADDRESS + 2*(SIZE_X_DISPLAY * carriage.y + carriage.x);
-    *((unsigned short*) pos) = + 0xff00 + (unsigned short)('0');
+//    unsigned long pos = START_DISPLAY_ADDRESS + 2*(SIZE_X_DISPLAY * carriage.y + carriage.x);
+//    carriage.now_char = *((unsigned short*) pos);
+//    *((unsigned short*) pos) = + 0x8700 + (unsigned short)('|');
 }
 
-void carriage_shift(int shift){
-    for (int i = 0; i < shift; ++i) {
+void carriage_shift(int shift) {
+    if ( shift < 0) {
+        int x_temp = (int) carriage.x + shift % SIZE_X_DISPLAY;
+        int y_temp = (int) carriage.y + shift / SIZE_X_DISPLAY - (int)(x_temp < 0);
+
+        carriage.y = (unsigned short)(y_temp < 0 ? 0 : y_temp);
+        carriage.x = (unsigned short)(x_temp < 0 ? SIZE_X_DISPLAY + x_temp : x_temp);
+        carriage.x = (unsigned short)(y_temp < 0 ? 0 : carriage.x);
+    } else {
+        carriage.x += shift - 1;
         carriage_inc();
     }
-//    carriage.x += shift - 1;
-//    carriage_inc();
 }
 
-void carriage_dec(){
+void carriage_dec() {
     carriage.y -= (carriage.x == 0 && carriage.y);
-    carriage.x = (carriage.x ? carriage.x - 1 : SIZE_X_DISPLAY - 1);
+    carriage.x = (carriage.x ? carriage.x : SIZE_X_DISPLAY) - 1;
+}
+
+void carriage_start() {
+    carriage.x = 0;
+}
+
+void carriage_new_line() {
+    carriage.x--;
+    carriage.y++;
+    carriage_inc();
+}
+
+void carriage_set_position(unsigned short x, unsigned short y) {
+    if ((x >= SIZE_X_DISPLAY) || (y >= SIZE_Y_DISPLAY)) {
+        vga_error();
+        return;
+    }
+    carriage.x = x;
+    carriage.y = y;
 }
 
 void vga_init() {
@@ -58,24 +77,40 @@ void vga_clear_screen() {
     }
 }
 
-void vga_print_char(char sym, color_front front, color_back back, int x, int y) {
-    if ((x >= SIZE_X_DISPLAY) || (y >= SIZE_Y_DISPLAY)) {
-        vga_error();
-        return;
-    }
-    carriage.x = x;
-    carriage.y = y;
+void vga_print_char(char sym, color_front front, color_back back, unsigned short x, unsigned short y) {
+    carriage_set_position(x, y);
     vga_print_char_carriage(sym, front, back);
 }
 
-void vga_print_char_carriage(char sym, color_front front, color_back back){
+void vga_print_char_carriage(char sym, color_front front, color_back back) {
     unsigned long pos = START_DISPLAY_ADDRESS + 2*(SIZE_X_DISPLAY * carriage.y + carriage.x);
-    *((unsigned short*) pos) = + front + back + (unsigned short)sym;
-    carriage_inc();
+    switch (sym) {
+        case '\t': {
+            do {
+                vga_print_char_carriage(' ', front, back);
+            } while (carriage.x % 8);
+            break;
+        }
+        case '\r': {
+            carriage_start();
+            break;
+        }
+        case '\n': {
+            carriage_new_line();
+            break;
+        }
+        case '\0': {
+            break;
+        }
+        default: {
+            *((unsigned short*) pos) = (front + back + (unsigned short)sym);
+            carriage_inc();
+        }
+    }
 }
 
-void vga_scroll_line(int flag_down){
-    unsigned short step = (flag_down ? SIZE_X_DISPLAY : -SIZE_X_DISPLAY);
+void vga_scroll_line(char flag_down) {
+    short step = (flag_down ? SIZE_X_DISPLAY : -SIZE_X_DISPLAY);
     unsigned short start_coord = (flag_down ? 0 : SIZE_X_DISPLAY * (SIZE_Y_DISPLAY - 1));
     unsigned short end_coord = (flag_down ? SIZE_X_DISPLAY * (SIZE_Y_DISPLAY - 1) : 0);
 
@@ -90,7 +125,7 @@ void vga_scroll_line(int flag_down){
     }
 
     for (int j = 0; j < SIZE_X_DISPLAY; ++j) {
-        *(unsigned short*)(START_DISPLAY_ADDRESS + 2 * (end_coord  + j)) = black_f + black_f;
+        *(unsigned short*)(START_DISPLAY_ADDRESS + 2 * (end_coord + j)) = black_f + black_f;
     }
 }
 
@@ -110,7 +145,3 @@ void vga_error() {
     *((short int*) 0xB8006) = 0x4F00 + (int) 'O';
     *((short int*) 0xB8008) = 0x4F00 + (int) 'R';
 }
-//// перенос строки
-//// шифт кареток
-//// отображение каретки
-//// ...
