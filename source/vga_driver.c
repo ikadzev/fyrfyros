@@ -137,7 +137,6 @@ void vga_shift_down_line() {
     vga_scroll_line(1);
 }
 
-
 void vga_error() {
     *((short int*) 0xB8000) = 0x4F00 + (int) 'E';
     *((short int*) 0xB8002) = 0x4F00 + (int) 'R';

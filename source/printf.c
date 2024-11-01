@@ -27,6 +27,10 @@ void print_fyr(char* str, ...) {
                     print_str(string);
                     break;
                 }
+                case '%': {
+                    vga_print_char_carriage('%', white_f, black_b);
+                    break;
+                }
             }
         } else {
             vga_print_char_carriage(str[i], white_f, black_b);
