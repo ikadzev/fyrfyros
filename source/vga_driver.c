@@ -21,9 +21,6 @@ void carriage_inc() {
         carriage.y--;
         vga_shift_down_line();
     }
-//    unsigned long pos = START_DISPLAY_ADDRESS + 2*(SIZE_X_DISPLAY * carriage.y + carriage.x);
-//    carriage.now_char = *((unsigned short*) pos);
-//    *((unsigned short*) pos) = + 0x8700 + (unsigned short)('|');
 }
 
 void carriage_shift(int shift) {
