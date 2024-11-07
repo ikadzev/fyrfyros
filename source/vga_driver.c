@@ -19,7 +19,7 @@ void carriage_inc() {
 
     while (carriage.y >= SIZE_Y_DISPLAY) {
         carriage.y--;
-        vga_shift_down_line();
+        carriage_shift_down_line();
     }
 }
 
@@ -59,6 +59,14 @@ void carriage_set_position(unsigned short x, unsigned short y) {
     }
     carriage.x = x;
     carriage.y = y;
+}
+
+void carriage_shift_up_line() {
+    vga_scroll_line(0);
+}
+
+void carriage_shift_down_line() {
+    vga_scroll_line(1);
 }
 
 void vga_init() {
@@ -124,14 +132,6 @@ void vga_scroll_line(char flag_down) {
     for (int j = 0; j < SIZE_X_DISPLAY; ++j) {
         *(unsigned short*)(START_DISPLAY_ADDRESS + 2 * (end_coord + j)) = black_f + black_f;
     }
-}
-
-void vga_shift_up_line() {
-    vga_scroll_line(0);
-}
-
-void vga_shift_down_line() {
-    vga_scroll_line(1);
 }
 
 void vga_error() {
