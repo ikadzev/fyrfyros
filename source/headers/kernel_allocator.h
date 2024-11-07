@@ -31,6 +31,7 @@ static PullAllocator ALLOCATOR;
 void kernel_start_allocator();
 void kernel_init_allocator(PullAllocator* allocator, size_t N);
 void* kernel_malloc(size_t size);
+void* kernel_calloc(size_t num, size_t size);
 void* kernel_realloc(void* ptr, size_t new_size);
 void kernel_free(void* ptr);
 void kernel_memcpy(void* in, void* out, size_t size);

@@ -39,6 +39,17 @@ void* kernel_malloc(size_t size) {
     }
 }
 
+void* kernel_calloc(size_t num, size_t size){
+    void* ptr = kernel_malloc(num * size);
+    if (ptr == NULL) {
+        return NULL;
+    }
+    for (size_t i = 0; i < num * size; ++i) {
+        ((char*)ptr)[i] = 0;
+    }
+    return ptr;
+}
+
 void* kernel_realloc(void* ptr, size_t new_size) {
     if (ptr == NULL)
         return kernel_malloc(new_size);
