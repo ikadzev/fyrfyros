@@ -1,27 +1,43 @@
-all: clear asm1 checkSize asm2 clean boot checkAnswer
+TARGET := boot
+KERNEL := kernel
 
-clear:
-	touch boot.img
-	rm boot.img
+BUILD_DIR = ./bin
+SOURCE_DIR = ./source
+HEADERS_DIR = $(SOURCE_DIR)/headers
+SRCS = $(shell find $(SOURCE_DIR) -name '*.c')
+OBJS := $(SRCS:$(SOURCE_DIR)/%.c=$(BUILD_DIR)/%.o)
+HEADS := $(shell find $(HEADERS_DIR) -name '*.h')
 
-asm1:
-	nasm -fbin boot.asm -o boot.bin
-	nasm -fbin foo.asm -o foo.bin
+CFLAGS := -m32 -ffreestanding -fno-pie -c
+LDFLAGS := -m i386pe -Ttext=0x20200
+OBJFLAGS := -I pe-i386 -O binary
 
-checkSize:
-	if [ "$(shell wc -c "foo.bin")" != "392704 foo.bin" ]; then echo "File size \"foo.bin\" not equal 384kb !"; exit 1; fi
+.PHONY: execute build clean
+execute: $(TARGET).img
+	qemu-system-i386 -fda $< -monitor stdio
 
-asm2:
-	dd if=/dev/zero of=boot.img bs=1024 count=1440
-	dd if=boot.bin of=boot.img conv=notrunc
-	dd if=foo.bin of=boot.img conv=notrunc seek=1
-
-boot:
-	qemu-system-i386 -fda boot.img -monitor stdio # manual "memsave 0x20000 0x60000 dump.img"
-
-checkAnswer:
-	python3 checksum.py dump.img
-	python3 checksum.py boot.img
+build: $(TARGET).img
 
 clean:
-	rm boot.bin
+	rm -r $(BUILD_DIR)
+
+$(TARGET).img: $(BUILD_DIR)/$(KERNEL).bin $(BUILD_DIR)/$(TARGET).bin
+	dd if=/dev/zero of=$@ bs=1024 count=1440
+	dd if=$(BUILD_DIR)/$(TARGET).bin of=$@ conv=notrunc
+	dd if=$(BUILD_DIR)/$(KERNEL).bin of=$@ conv=notrunc seek=1
+
+$(BUILD_DIR)/$(TARGET).bin: $(TARGET).asm
+	nasm -fbin $< -o $@
+
+$(BUILD_DIR)/$(KERNEL).bin: $(BUILD_DIR)/$(KERNEL).o $(OBJS)
+	ld $(LDFLAGS) -o $(BUILD_DIR)/$(KERNEL).tmp $^
+	objcopy $(OBJFLAGS) $(BUILD_DIR)/$(KERNEL).tmp $(BUILD_DIR)/$(KERNEL).bin
+
+$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.c
+	mkdir -p $(BUILD_DIR)
+	gcc $(CFLAGS) -o $@ $<
+
+$(BUILD_DIR)/$(KERNEL).o: $(KERNEL).c $(HEADS)
+	mkdir -p $(BUILD_DIR)
+	gcc $(CFLAGS) -o $@ $(KERNEL).c
+
