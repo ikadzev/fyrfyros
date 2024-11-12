@@ -4,23 +4,29 @@
 
 void print_logo();
 
+static void create_lidt();
+
+
+void interrupt_call(int interrupt_number) {
+    __asm__ __volatile__ (
+            "int %0\n\t"  // Вставка прерывания
+            :
+            : "i"(interrupt_number)  // Прерывание передается как немедленное значение
+            );
+}
+
 void kernel_entry() {
-    kernel_start_allocator();
     vga_clear_screen();
-    int* t = kernel_malloc(sizeof(int) * 10);
-    t[0] = 12;
-    t[1] = 13;
-    t[2] = 14;
-    t[3] = 15;
-    t[4] = 16;
-    t[5] = 17;
-    print_int(*(t++));
-    print_int(*(t++));
-    print_int(*(t++));
-    print_int(*(t++));
-    print_int(*(t++));
+    kernel_start_allocator();
+    create_lidt();
+    interrupt_call(12);
+    //int a = 4/0;
+    //macro(12)
     for (;;);
 }
+
+
+#include "source/headers/tramplins.h"
 
 void print_logo() {
     vga_clear_screen();

@@ -1,7 +1,6 @@
 #include "headers/kernel_allocator.h"
 
 void kernel_start_allocator() {
-    size_t N = 7;
     kernel_init_allocator(&ALLOCATOR, COUNT_ARENAS - 1);
 }
 
@@ -85,7 +84,7 @@ void kernel_free(void* ptr) {
 
 void kernel_memcpy(void* in, void* out, size_t size){
     for (size_t i = 0; i < size; ++i) {
-        *((char*)in) = *((char*)out);
+        ((char*)in)[i] = ((char*)out)[i];
     }
 }
 
