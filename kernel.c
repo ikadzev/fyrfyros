@@ -1,15 +1,17 @@
 #include "source/headers/vga_driver.h"
-#include "source/headers/va_list.h"
 #include "source/headers/printf.h"
+#include "source/headers/kernel_allocator.h"
+#include "source/headers/tramplins.h"
 
 void print_logo();
 
 void kernel_entry() {
-    print_logo();
-    vga_shift_down_line();
+    vga_clear_screen();
+    kernel_start_allocator();
+    create_lidt();
+//     int a = 4/0;
     for (;;);
 }
-
 void print_logo() {
     vga_clear_screen();
     print_fyr(

@@ -46,14 +46,14 @@ void carriage_dec(); // сдвигает каретку влево
 void carriage_start(); //сдвигает каретку в начало строки
 void carriage_new_line(); //переводит каретку на новую строку
 void carriage_set_position(unsigned short x, unsigned short y); //задаёт позицию каретки
+void carriage_shift_down_line();
+void carriage_shift_up_line();
 
 void vga_init();
 void vga_clear_screen();
 void vga_print_char(char sym, color_front, color_back, unsigned short, unsigned short);
 void vga_print_char_carriage(char sym, color_front, color_back);
 void vga_scroll_line(char flag_down);
-void vga_shift_down_line();
-void vga_shift_up_line();
 void vga_error();
 
 #endif //FYRFYROS_VGA_DRIVER_H
