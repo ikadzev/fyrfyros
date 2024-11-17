@@ -341,8 +341,8 @@ static gate_descriptor generate_gate_descriptor(void* tramplin_ptr, enum gate_ty
 void create_lidt() {
     gate_descriptor* descriptor = generate_idt();
     table_gate_descriptor table;
-    table->size = COUNT_INTERRUPT * sizeof(gate_descriptor) - 1;
-    table->address = (unsigned int)descriptor;
+    table.size = COUNT_INTERRUPT * sizeof(gate_descriptor) - 1;
+    table.address = (unsigned int)descriptor;
     __asm__ __volatile__(
             "lidt (%0)"
             :
