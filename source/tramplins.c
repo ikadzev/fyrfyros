@@ -359,4 +359,20 @@ static void panic_handler(unsigned char vector){
     }
 };
 
+static void interrupt_handler(context* ctx) {
+    switch (ctx->vector) {
+        case 0x20:
+            timer_interrupt(ctx);
+            break;
+        default:
+            panic_handler(ctx->vector);
+            break;
+    }
+}
+
+u32 GLOBAL_COUNTER_TIMER = 0;
+
+static void timer_interrupt(context* ctx) {
+    print_int(GLOBAL_COUNTER_TIMER++);
+}
 
