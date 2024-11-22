@@ -352,7 +352,7 @@ void create_lidt() {
 }
 
 static void panic_handler(unsigned char vector){
-    vga_clear_screen();
+    vga_init();
     print_fyr("unhandled interrupt %x", vector);
     for (;;) {
 
