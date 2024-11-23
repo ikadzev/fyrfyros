@@ -3,6 +3,7 @@
 #include "source/headers/kernel_allocator.h"
 #include "source/headers/tramplins.h"
 #include "source/headers/intel8259A.h"
+#include "source/headers/handler_interupt.h"
 
 void print_logo();
 

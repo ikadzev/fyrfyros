@@ -5,9 +5,9 @@ BUILD_DIR = ./bin
 SOURCE_DIR = ./source
 HEADERS_DIR = $(SOURCE_DIR)/headers
 SRCS = $(shell find $(SOURCE_DIR) -name '*.c')
-SRCS_ASM = $(shell find $(SOURCE_DIR) -name '*.asm')
+SRCS_ASM = $(shell find $(SOURCE_DIR)/asm -name '*.asm')
 OBJS := $(SRCS:$(SOURCE_DIR)/%.c=$(BUILD_DIR)/%.o)
-OBJS_ASM := $(SRCS_ASM:$(SOURCE_DIR)/%.asm=$(BUILD_DIR)/%.o)
+OBJS_ASM := $(SRCS_ASM:$(SOURCE_DIR)/asm/%.asm=$(BUILD_DIR)/%_asm.o)
 HEADS := $(shell find $(HEADERS_DIR) -name '*.h')
 
 CFLAGS := -m32 -ffreestanding -fno-pie -c
@@ -39,7 +39,7 @@ $(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.c $(HEADS)
 	mkdir -p $(BUILD_DIR)
 	gcc $(CFLAGS) -o $@ $<
 
-$(BUILD_DIR)/%.o: $(SOURCE_DIR)/%.asm
+$(BUILD_DIR)/%_asm.o: $(SOURCE_DIR)/asm/%.asm
 	mkdir -p $(BUILD_DIR)
 	nasm -felf $< -o $@
 
