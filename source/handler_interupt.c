@@ -3,16 +3,34 @@
 //
 
 #include "headers/handler_interupt.h"
+#include "headers/intel8259A.h"
 
-u32 GLOBAL_COUNTER_TIMER = 0;
+u32 GLOBAL_COUNTER_TIMER = 0x0;
+
+void return_ie_flag() {
+    __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "sti\n\t"
+            ".att_syntax prefix\n\t"
+            );
+}
 
 void interrupt_handler(context* ctx) {
     print_context(ctx);
     switch (ctx->vector) {
         case 0x20:
             timer_interrupt(ctx);
+            outb(0x20, 0x20);
             break;
         default:
+            if (ctx->vector < 0x20) {
+                return_ie_flag();
+            } else if (ctx->vector < 0x30) {
+                if (ctx->vector >= 0x28) {
+                    outb(0xA0, 0x20);
+                }
+                outb(0x20, 0x20);
+            }
             panic_handler(ctx->vector);
             break;
     }
@@ -39,17 +57,12 @@ void print_context(context* ctx) {
     print_fyr("eflags: %x\r\n", ctx->eflags);
 }
 
-void panic_handler(unsigned char vector) {
+void panic_handler(byte vector) {
     vga_init();
     print_fyr("unhandled interrupt %x", vector);
-    for (;;) {
-
-    }
+    for (;;) {}
 }
 
 static void timer_interrupt(context* ctx) {
-    //print_int(GLOBAL_COUNTER_TIMER++);
-    for (;;) {
-
-    }
+    print_fyr("GLOBAL_COUNTER_TIMER = %d\r\n", GLOBAL_COUNTER_TIMER++);
 }

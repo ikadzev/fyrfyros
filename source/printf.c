@@ -8,17 +8,17 @@
 void print_fyr(char* str, ...) {
     va_list list;
     va_start(list, str);
-    for (int i = 0; str[i] != 0; ++i) {
+    for (i32 i = 0; str[i] != 0; ++i) {
         if (str[i] == '%') {
             i++;
             switch (str[i]) {
                 case 'd': {
-                    int number = va_arg(list, int);
+                    i32 number = va_arg(list, i32);
                     print_int(number);
                     break;
                 }
                 case 'x': {
-                    int number = va_arg(list, int);
+                    i32 number = va_arg(list, i32);
                     print_hex(number);
                     break;
                 }
@@ -38,7 +38,7 @@ void print_fyr(char* str, ...) {
     }
 }
 
-void print_int(int number) {
+void print_int(i32 number) {
     if (number < 0) {
         vga_print_char_carriage('-', white_f, black_b);
         number = -number;
@@ -50,19 +50,19 @@ void print_int(int number) {
     }
 
     char buffer[10];
-    int i = 0;
+    i32 i = 0;
 
     while (number > 0) {
         buffer[i++] = (char)((number % 10) + '0');
         number /= 10;
     }
 
-    for (int j = i - 1; j >= 0; j--) {
+    for (i32 j = i - 1; j >= 0; j--) {
         vga_print_char_carriage(buffer[j], white_f, black_b);
     }
 }
 
-void print_hex(int number) {
+void print_hex(i32 number) {
     if (number < 0) {
         vga_print_char_carriage('-', white_f, black_b);
         number = -number;
@@ -77,21 +77,21 @@ void print_hex(int number) {
     }
 
     char buffer[8];
-    int i = 0;
+    i32 i = 0;
 
     while (number > 0) {
-        int remainder = number % 16;
+        i32 remainder = number % 16;
         buffer[i++] = (char)(remainder < 10 ? remainder + '0' : remainder - 10 + 'a');
         number /= 16;
     }
 
-    for (int j = i - 1; j >= 0; j--) {
+    for (i32 j = i - 1; j >= 0; j--) {
         vga_print_char_carriage(buffer[j], white_f, black_b);
     }
 }
 
 void print_str(char *str) {
-    for (int i = 0; str[i] != 0; ++i) {
+    for (i32 i = 0; str[i] != 0; ++i) {
         vga_print_char_carriage(str[i], white_f, black_b);
     }
 }

@@ -7,10 +7,10 @@
 
 #include "vga_driver.h"
 #include "printf.h"
-#include "macroses.h"
+//#include "macroses.h"
 
 #pragma pack(push, 1)
-typedef struct context{
+typedef struct context {
     u32 edi;
     u32 esi;
     u32 ebp;
@@ -36,11 +36,13 @@ typedef struct context{
 } context;
 #pragma pack(pop)
 
+void return_ie_flag();
+
 void interrupt_handler(context* ctx);
 
 void print_context(context* ctx);
 
-void panic_handler(unsigned char vector);
+void panic_handler(byte vector);
 
 static void timer_interrupt(context* ctx);
 

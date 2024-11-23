@@ -316,7 +316,7 @@ static void* tramplins[] = {tramplin_00, tramplin_01, tramplin_02, tramplin_03, 
 
 static gate_descriptor* generate_idt(){
     gate_descriptor* ans = kernel_malloc(COUNT_INTERRUPT * sizeof(gate_descriptor));
-    for (int i = 0; i < COUNT_INTERRUPT; ++i) {
+    for (i32 i = 0; i < COUNT_INTERRUPT; ++i) {
         ans[i] = generate_gate_descriptor(tramplins[i], interrupt_gate, kernel);
     }
     return ans;
@@ -324,7 +324,7 @@ static gate_descriptor* generate_idt(){
 
 static gate_descriptor generate_gate_descriptor(void* tramplin_ptr, enum gate_type type, enum descriptor_privilege_level level) {
     gate_descriptor gate;
-    gate.shift_low = (unsigned short)tramplin_ptr;
+    gate.shift_low = (u16)tramplin_ptr;
     __asm __volatile__( ".intel_syntax noprefix\n\t"
            "mov %0, cs\n\t"
            ".att_syntax prefix\n\t"
@@ -335,7 +335,7 @@ static gate_descriptor generate_gate_descriptor(void* tramplin_ptr, enum gate_ty
     gate.reserve2 = 0;
     gate.dpl = level;
     gate.reserve3 = 1;
-    gate.shift_height = (unsigned short)((int)tramplin_ptr >> 16);
+    gate.shift_height = (u16)((i32)tramplin_ptr >> 16);
     return gate;
 }
 
@@ -343,7 +343,7 @@ void create_lidt() {
     gate_descriptor* descriptor = generate_idt();
     table_gate_descriptor table;
     table.size = COUNT_INTERRUPT * sizeof(gate_descriptor) - 1;
-    table.address = (unsigned int)descriptor;
+    table.address = (u32)descriptor;
     __asm__ __volatile__(
             "lidt (%0)"
             :

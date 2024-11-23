@@ -16,12 +16,8 @@ void kernel_entry() {
     vga_clear_screen();
     kernel_start_allocator();
     create_lidt();
-    configurate_intel8258A_all();
-    __asm__ __volatile__ (
-            ".intel_syntax noprefix\n\t"
-            "sti\n\t"
-            ".att_syntax prefix\n\t"
-            );
+    configure_intel8258A_all();
+    return_ie_flag();
     for (;;);
 }
 void print_logo() {

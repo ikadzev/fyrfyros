@@ -4,6 +4,9 @@
 
 #ifndef FYRFYROS_VA_LIST_H
 #define FYRFYROS_VA_LIST_H
+
+#include "macroses.h"
+
 typedef struct va_list {
     void* now_address;
 } va_list;

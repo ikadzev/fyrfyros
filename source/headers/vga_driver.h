@@ -5,6 +5,8 @@
 #ifndef FYRFYROS_VGA_DRIVER_H
 #define FYRFYROS_VGA_DRIVER_H
 
+#include "macroses.h"
+
 #define START_DISPLAY_ADDRESS 0xB8000
 #define END_DISPLAY_ADDRESS 0xB8FA0
 #define SIZE_X_DISPLAY 80
@@ -41,17 +43,17 @@ typedef enum color_back {
 } color_back;
 
 void carriage_inc(); // сдвигает каретку вправо
-void carriage_shift(int shift); //сдвигает каретку на shift вправо
+void carriage_shift(i32 shift); //сдвигает каретку на shift вправо
 void carriage_dec(); // сдвигает каретку влево
 void carriage_start(); //сдвигает каретку в начало строки
 void carriage_new_line(); //переводит каретку на новую строку
-void carriage_set_position(unsigned short x, unsigned short y); //задаёт позицию каретки
+void carriage_set_position(u16 x, u16 y); //задаёт позицию каретки
 void carriage_shift_down_line();
 void carriage_shift_up_line();
 
 void vga_init();
 void vga_clear_screen();
-void vga_print_char(char sym, color_front, color_back, unsigned short, unsigned short);
+void vga_print_char(char sym, color_front, color_back, u16, u16);
 void vga_print_char_carriage(char sym, color_front, color_back);
 void vga_scroll_line(char flag_down);
 void vga_error();

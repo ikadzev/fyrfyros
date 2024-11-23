@@ -1,10 +1,11 @@
-#include "macroses.h"
 //
 // Created by modnick on 08.11.2024.
 //
 
 #ifndef FYRFYROS_TRAMPLINS_H
 #define FYRFYROS_TRAMPLINS_H
+
+#include "macroses.h"
 
 #define COUNT_INTERRUPT 256
 
@@ -22,19 +23,19 @@ enum descriptor_privilege_level {
 
 #pragma pack(push, 1)
 typedef struct gate_descriptor {
-    unsigned short shift_low;
-    unsigned short selector_segment;
-    unsigned char reserve1;
-    unsigned char gate_type : 4;
-    unsigned char reserve2 : 1;
-    unsigned char dpl : 2;
-    unsigned char reserve3 : 1;
-    unsigned short shift_height;
+    u16 shift_low;
+    u16 selector_segment;
+    byte reserve1;
+    byte gate_type : 4;
+    byte reserve2 : 1;
+    byte dpl : 2;
+    byte reserve3 : 1;
+    u16 shift_height;
 } gate_descriptor;
 
 typedef struct table_gate_descriptor {
-    unsigned short size;
-    unsigned int address;
+    u16 size;
+    u32 address;
 } table_gate_descriptor;
 
 static gate_descriptor *generate_idt();
