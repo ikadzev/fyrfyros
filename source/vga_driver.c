@@ -11,7 +11,6 @@ struct{
     unsigned short now_char;
 } carriage;
 
-
 void carriage_inc() {
     carriage.x++;
     carriage.y += carriage.x / SIZE_X_DISPLAY;

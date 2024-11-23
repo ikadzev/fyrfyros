@@ -5,20 +5,23 @@
 #include "source/headers/intel8259A.h"
 
 void print_logo();
-void asm_test();
+
 
 void kernel_entry() {
+    __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "cli\n\t"
+            ".att_syntax prefix\n\t"
+            );
     vga_clear_screen();
     kernel_start_allocator();
     create_lidt();
-    // asm_test();
     configurate_intel8258A_all();
     __asm__ __volatile__ (
             ".intel_syntax noprefix\n\t"
             "sti\n\t"
             ".att_syntax prefix\n\t"
             );
-    // print_logo();
     for (;;);
 }
 void print_logo() {
