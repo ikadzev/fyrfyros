@@ -10,6 +10,7 @@
 void print_fyr(char* str, ...);
 void print_int(i32 number);
 void print_hex(i32 number);
+void print_unsigned_hex(i32 number);
 void print_str(char *anInt);
 
 #endif //FYRFYROS_PRINTF_H

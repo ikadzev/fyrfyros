@@ -1,5 +1,5 @@
 //
-// Created by modnick on 28.10.2024 and Anqeliccom on 30.12.2024
+// Created by modnick on 28.10.2024 and Anqeliccom on 30.12.2024, 24.11.2024
 //
 #include "headers/printf.h"
 #include "headers/va_list.h"
@@ -83,6 +83,31 @@ void print_hex(i32 number) {
         i32 remainder = number % 16;
         buffer[i++] = (char)(remainder < 10 ? remainder + '0' : remainder - 10 + 'a');
         number /= 16;
+    }
+
+    for (i32 j = i - 1; j >= 0; j--) {
+        vga_print_char_carriage(buffer[j], white_f, black_b);
+    }
+}
+
+void print_unsigned_hex(i32 number) {
+    u32 unsigned_number = (u32)number;
+
+    vga_print_char_carriage('0', white_f, black_b);
+    vga_print_char_carriage('x', white_f, black_b);
+
+    if (unsigned_number == 0) {
+        vga_print_char_carriage('0', white_f, black_b);
+        return;
+    }
+
+    char buffer[8];
+    i32 i = 0;
+
+    while (unsigned_number > 0) {
+        u32 remainder = unsigned_number % 16;
+        buffer[i++] = (char)(remainder < 10 ? remainder + '0' : remainder - 10 + 'a');
+        unsigned_number /= 16;
     }
 
     for (i32 j = i - 1; j >= 0; j--) {
