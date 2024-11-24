@@ -33,10 +33,13 @@ typedef struct context {
     u16 cs;
     u16 padding_5;
     u32 eflags;
+    u32 padding_6;
+    u16 ss;
 } context;
 #pragma pack(pop)
 
 void return_ie_flag();
+
 
 void interrupt_handler(context* ctx);
 
