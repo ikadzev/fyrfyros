@@ -92,11 +92,6 @@ void print_unsigned_hex(i32 number) {
     vga_print_char_carriage('0', white_f, black_b);
     vga_print_char_carriage('x', white_f, black_b);
 
-    if (unsigned_number == 0) {
-        vga_print_char_carriage('0', white_f, black_b);
-        return;
-    }
-
     char buffer[8] = {'0', '0', '0', '0', '0', '0', '0', '0'};
     i32 i = 0;
 
