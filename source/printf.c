@@ -71,20 +71,16 @@ void print_hex(i32 number) {
     vga_print_char_carriage('0', white_f, black_b);
     vga_print_char_carriage('x', white_f, black_b);
 
-    if (number == 0) {
-        vga_print_char_carriage('0', white_f, black_b);
-        return;
-    }
-
-    char buffer[8];
+    char buffer[8] = {'0', '0', '0', '0', '0', '0', '0', '0'};
     i32 i = 0;
 
     while (number > 0) {
         i32 remainder = number % 16;
-        buffer[i++] = (char)(remainder < 10 ? remainder + '0' : remainder - 10 + 'a');
+        buffer[i++] = (char)(remainder < 10 ? remainder + '0' : remainder - 10 + 'A');
         number /= 16;
     }
 
+    i = 8;
     for (i32 j = i - 1; j >= 0; j--) {
         vga_print_char_carriage(buffer[j], white_f, black_b);
     }
@@ -101,15 +97,16 @@ void print_unsigned_hex(i32 number) {
         return;
     }
 
-    char buffer[8];
+    char buffer[8] = {'0', '0', '0', '0', '0', '0', '0', '0'};
     i32 i = 0;
 
     while (unsigned_number > 0) {
         u32 remainder = unsigned_number % 16;
-        buffer[i++] = (char)(remainder < 10 ? remainder + '0' : remainder - 10 + 'a');
+        buffer[i++] = (char)(remainder < 10 ? remainder + '0' : remainder - 10 + 'A');
         unsigned_number /= 16;
     }
 
+    i = 8;
     for (i32 j = i - 1; j >= 0; j--) {
         vga_print_char_carriage(buffer[j], white_f, black_b);
     }
