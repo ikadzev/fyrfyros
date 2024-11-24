@@ -32,29 +32,31 @@ void interrupt_handler(context* ctx) {
                 outb(0x20, 0x20);
             }
             panic_handler(ctx->vector);
+            // for (;;);
             break;
     }
 }
 
 void print_context(context* ctx) {
     vga_clear_screen();
-    print_fyr("edi: %x\t", ctx->edi);
-    print_fyr("esi: %x\t", ctx->esi);
-    print_fyr("ebp: %x\t", ctx->ebp);
-    print_fyr("esp: %x\r\n", ctx->esp);
-    print_fyr("ebx: %x\t", ctx->ebx);
-    print_fyr("edx: %x\t", ctx->edx);
-    print_fyr("ecx: %x\t", ctx->ecx);
-    print_fyr("eax: %x\r\n", ctx->eax);
-    print_fyr("gs: %x\t", ctx->gs & 0x00FF);
-    print_fyr("fs: %x\t", ctx->fs & 0x00FF);
-    print_fyr("es: %x\t", ctx->es & 0x00FF);
-    print_fyr("ds: %x\r\n", ctx->ds & 0x00FF);
-    print_fyr("vector: %x\t", ctx->vector);
-    print_fyr("error code: %x\t", ctx->error_code);
-    print_fyr("eip: %x\r\n", ctx->eip);
-    print_fyr("cs: %x \r\n", ctx->cs & 0x00FF);
-    print_fyr("eflags: %x\r\n", ctx->eflags);
+    print_fyr("Kernel panic: unhandled interrupt %x, interrupted process context:\r\n", ctx->vector);
+    print_fyr("  EAX = %x ", ctx->eax);
+    print_fyr("ECX = %x ", ctx->ecx);
+    print_fyr("EDX = %x ", ctx->edx);
+    print_fyr("EBX = %x\r\n", ctx->ebx);
+    print_fyr("  ESP = %x ", ctx->esp);
+    print_fyr("EBP = %x ", ctx->ebp);
+    print_fyr("ESI = %x ", ctx->esi);
+    print_fyr("EDI = %x\r\n", ctx->edi);
+    print_fyr("  DS  = %x ", ctx->ds);
+    print_fyr("ES  = %x ", ctx->es);
+    print_fyr("FS  = %x ", ctx->fs);
+    print_fyr("GS  = %x\r\n", ctx->gs);
+    print_fyr("  CS  = %x ", ctx->cs);
+    print_fyr("SS  = %x ", ctx->ss);
+    print_fyr("EIP = %x\r\n", ctx->eip);
+    print_fyr("  EFLAGS (interrupted) = %x\r\n", ctx->eflags);
+    print_fyr("  error code = %x\r\n", ctx->error_code);
 }
 
 void panic_handler(byte vector) {
