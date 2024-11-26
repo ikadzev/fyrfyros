@@ -317,7 +317,7 @@ static void* tramplins[] = {tramplin_00, tramplin_01, tramplin_02, tramplin_03, 
 static gate_descriptor* generate_idt(){
     gate_descriptor* ans = kernel_malloc(COUNT_INTERRUPT * sizeof(gate_descriptor));
     for (i32 i = 0; i < COUNT_INTERRUPT; ++i) {
-        ans[i] = generate_gate_descriptor(tramplins[i], interrupt_gate, kernel);
+        ans[i] = generate_gate_descriptor(tramplins[i], i < 0x20 ? trap_gate : interrupt_gate, kernel);
     }
     return ans;
 }

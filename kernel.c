@@ -19,6 +19,7 @@ void kernel_entry() {
     create_lidt();
     configure_intel8258A_all();
     return_ie_flag();
+    int a = 1/0;
     for (;;);
 }
 void print_logo() {

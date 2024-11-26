@@ -7,6 +7,10 @@
 
 u32 GLOBAL_COUNTER_TIMER = 0x0;
 
+void eoi(enum intel8259_type cont) {
+    outb(cont == master ? 0x20 : 0xA0, 0x20);
+}
+
 void return_ie_flag() {
     __asm__ __volatile__ (
             ".intel_syntax noprefix\n\t"
@@ -16,30 +20,34 @@ void return_ie_flag() {
 }
 
 void interrupt_handler(context* ctx) {
-    print_context(ctx);
+    //print_context(ctx);
     switch (ctx->vector) {
         case 0x20:
             timer_interrupt(ctx);
-            outb(0x20, 0x20);
+            eoi(master);
             break;
         default:
             if (ctx->vector < 0x20) {
-                return_ie_flag();
+                trap_handler(ctx);
             } else if (ctx->vector < 0x30) {
                 if (ctx->vector >= 0x28) {
-                    outb(0xA0, 0x20);
+                    eoi(slave);
                 }
-                outb(0x20, 0x20);
+                eoi(master);
             }
-            panic_handler(ctx->vector);
-            // for (;;);
+            panic_handler(ctx);
             break;
     }
 }
 
+void trap_handler(context* ctx) {
+    // return_ie_flag;
+    for (;;) print_fyr("*");
+}
+
 void print_context(context* ctx) {
-    vga_clear_screen();
-    print_fyr("Kernel panic: unhandled interrupt %x, interrupted process context:\r\n", ctx->vector);
+    // vga_clear_screen();
+    print_fyr("\r\nKernel panic: unhandled interrupt %x, interrupted process context:\r\n", ctx->vector);
     print_fyr("  EAX = %x ", ctx->eax);
     print_fyr("ECX = %x ", ctx->ecx);
     print_fyr("EDX = %x ", ctx->edx);
@@ -53,16 +61,14 @@ void print_context(context* ctx) {
     print_fyr("FS  = %x ", ctx->fs);
     print_fyr("GS  = %x\r\n", ctx->gs);
     print_fyr("  CS  = %x ", ctx->cs);
-    print_fyr("SS  = %x ", ctx->ss);
-    print_fyr("EIP = %x\r\n", ctx->eip);
-    print_fyr("  EFLAGS (interrupted) = %x\r\n", ctx->eflags);
+    print_fyr("EIP = %x ", ctx->eip);
+    print_fyr("EFLAGS = %x\r\n", ctx->eflags);
     print_fyr("  error code = %x\r\n", ctx->error_code);
 }
 
-void panic_handler(byte vector) {
-    vga_init();
-    print_fyr("unhandled interrupt %x", vector);
-    for (;;) {}
+void panic_handler(context* ctx) {
+    print_context(ctx);
+    // for (;;) {}
 }
 
 static void timer_interrupt(context* ctx) {

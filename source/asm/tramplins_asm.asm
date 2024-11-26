@@ -265,10 +265,10 @@ extern interrupt_handler
 extern tet
 
 collect_context:
-    push word ds
-    push word es
-    push word fs
-    push word gs
+    push ds
+    push es
+    push fs
+    push gs
     pusha
     push esp
     call interrupt_handler
@@ -283,34 +283,42 @@ collect_context:
 
 
 tramplin_00:
+ deadcode
  push 0x00
  jmp collect_context
 
 tramplin_01:
+ deadcode
  push 0x01
  jmp collect_context
 
 tramplin_02:
+ deadcode
  push 0x02
  jmp collect_context
 
 tramplin_03:
+ deadcode
  push 0x03
  jmp collect_context
 
 tramplin_04:
+ deadcode
  push 0x04
  jmp collect_context
 
 tramplin_05:
+ deadcode
  push 0x05
  jmp collect_context
 
  tramplin_06:
+ deadcode
  push 0x06
  jmp collect_context
 
 tramplin_07:
+ deadcode
  push 0x07
  jmp collect_context
 
@@ -319,6 +327,7 @@ tramplin_08:
  jmp collect_context
 
 tramplin_09:
+ deadcode
  push 0x09
  jmp collect_context
 
@@ -343,10 +352,12 @@ tramplin_0E:
  jmp collect_context
 
 tramplin_0F:
+ deadcode
  push 0x0F
  jmp collect_context
 
 tramplin_10:
+ deadcode
  push 0x10
  jmp collect_context
 
@@ -355,14 +366,17 @@ tramplin_11:
  jmp collect_context
 
 tramplin_12:
+ deadcode
  push 0x12
  jmp collect_context
 
 tramplin_13:
+ deadcode
  push 0x13
  jmp collect_context
 
 tramplin_14:
+ deadcode
  push 0x14
  jmp collect_context
 
@@ -371,30 +385,37 @@ tramplin_15:
  jmp collect_context
 
 tramplin_16:
+ deadcode
  push 0x16
  jmp collect_context
 
 tramplin_17:
+ deadcode
  push 0x17
  jmp collect_context
 
 tramplin_18:
+ deadcode
  push 0x18
  jmp collect_context
 
 tramplin_19:
+ deadcode
  push 0x19
  jmp collect_context
 
 tramplin_1A:
+ deadcode
  push 0x1A
  jmp collect_context
 
 tramplin_1B:
+ deadcode
  push 0x1B
  jmp collect_context
 
 tramplin_1C:
+ deadcode
  push 0x1C
  jmp collect_context
 
@@ -407,6 +428,7 @@ tramplin_1E:
  jmp collect_context
 
 tramplin_1F:
+ deadcode
  push 0x1F
  jmp collect_context
 

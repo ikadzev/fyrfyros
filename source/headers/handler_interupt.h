@@ -7,6 +7,7 @@
 
 #include "vga_driver.h"
 #include "printf.h"
+#include "intel8259A.h"
 //#include "macroses.h"
 
 #pragma pack(push, 1)
@@ -33,19 +34,22 @@ typedef struct context {
     u16 cs;
     u16 padding_5;
     u32 eflags;
-    u32 padding_6;
-    u16 ss;
+    // u32 padding_6;
+    // u16 ss;
 } context;
 #pragma pack(pop)
 
 void return_ie_flag();
 
+void eoi(enum intel8259_type cont);
 
 void interrupt_handler(context* ctx);
 
+void trap_handler(context* ctx);
+
 void print_context(context* ctx);
 
-void panic_handler(byte vector);
+void panic_handler(context*);
 
 static void timer_interrupt(context* ctx);
 
