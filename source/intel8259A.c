@@ -30,17 +30,17 @@ void outb(u16 port, byte data) {
 }
 
 void configure_intel8259(u16 command_port, u16 data_port, enum intel8259_type type) {
-    byte iwc1 = 0b00010001;
-    byte iwc2 = type == master ? 0x20 : 0x28;
-    byte iwc3 = type == master ? 0b00000100: 0x2;
-    byte iwc4 = 0b00000001;
-    outb(command_port, iwc1);
+    byte icw1 = 0b00010001;
+    byte icw2 = type == master ? 0x20 : 0x28;
+    byte icw3 = type == master ? 0b00000100: 0x2;
+    byte icw4 = 0b00000001;
+    outb(command_port, icw1);
     outb(0x80, 0xAD);
-    outb(data_port, iwc2);
+    outb(data_port, icw2);
     outb(0x80, 0xAD);
-    outb(data_port, iwc3);
+    outb(data_port, icw3);
     outb(0x80, 0xAD);
-    outb(data_port, iwc4);
+    outb(data_port, icw4);
     outb(0x80, 0xAD);
 }
 
