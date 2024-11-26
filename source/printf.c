@@ -19,7 +19,7 @@ void print_fyr(char* str, ...) {
                 }
                 case 'x': {
                     i32 number = va_arg(list, i32);
-                    print_hex(number);
+                    print_unsigned_hex(number);
                     break;
                 }
                 case 's': {
