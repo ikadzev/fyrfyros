@@ -39,7 +39,9 @@ typedef struct context {
 } context;
 #pragma pack(pop)
 
-void return_ie_flag();
+void cli();
+
+void sti();
 
 void eoi(enum intel8259_type cont);
 

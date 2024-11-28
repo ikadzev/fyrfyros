@@ -48,6 +48,7 @@ void carriage_dec(); // сдвигает каретку влево
 void carriage_start(); //сдвигает каретку в начало строки
 void carriage_new_line(); //переводит каретку на новую строку
 void carriage_set_position(u16 x, u16 y); //задаёт позицию каретки
+u32 carriage_get_position(); // выдаёт координаты каретки (старшие 16 бит координаты по х, младшие 16 -- по у).
 void carriage_shift_down_line();
 void carriage_shift_up_line();
 

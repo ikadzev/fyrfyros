@@ -271,6 +271,9 @@ collect_context:
     push gs
     pusha
     push esp
+    mov eax, 0x10
+    mov ds, ax
+    mov es, ax
     call interrupt_handler
     pop esp
     popa

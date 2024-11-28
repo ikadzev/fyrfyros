@@ -9,19 +9,16 @@ void print_logo();
 
 
 void kernel_entry() {
-    __asm__ __volatile__ (
-            ".intel_syntax noprefix\n\t"
-            "cli\n\t"
-            ".att_syntax prefix\n\t"
-            );
+    cli();
     vga_clear_screen();
     kernel_start_allocator();
     create_lidt();
     configure_intel8258A_all();
-    return_ie_flag();
+    sti();
     int a = 1/0;
     for (;;);
 }
+
 void print_logo() {
     vga_clear_screen();
     print_fyr(

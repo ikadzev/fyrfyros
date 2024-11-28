@@ -7,11 +7,16 @@
 
 u32 GLOBAL_COUNTER_TIMER = 0x0;
 
-void eoi(enum intel8259_type cont) {
-    outb(cont == master ? 0x20 : 0xA0, 0x20);
+
+void cli() {
+    __asm__ __volatile__ (
+            ".intel_syntax noprefix\n\t"
+            "cli\n\t"
+            ".att_syntax prefix\n\t"
+            );
 }
 
-void return_ie_flag() {
+void sti() {
     __asm__ __volatile__ (
             ".intel_syntax noprefix\n\t"
             "sti\n\t"
@@ -19,18 +24,21 @@ void return_ie_flag() {
             );
 }
 
+void eoi(enum intel8259_type cont) {
+    outb(cont == master ? 0x20 : 0xA0, 0x20);
+}
+
 void interrupt_handler(context* ctx) {
-    //print_context(ctx);
     switch (ctx->vector) {
         case 0x20:
             timer_interrupt(ctx);
             eoi(master);
             break;
         default:
-            if (ctx->vector < 0x20) {
+            if (ctx->vector < start_vector_master) {
                 trap_handler(ctx);
             } else if (ctx->vector < 0x30) {
-                if (ctx->vector >= 0x28) {
+                if (ctx->vector >= start_vector_slave) {
                     eoi(slave);
                 }
                 eoi(master);
@@ -41,12 +49,15 @@ void interrupt_handler(context* ctx) {
 }
 
 void trap_handler(context* ctx) {
-    // return_ie_flag;
-    for (;;) print_fyr("*");
+//    sti();
+    for (;;) {
+        for (u32 i = 0; i < 0xFF0; i++);
+        print_fyr((GLOBAL_COUNTER_TIMER % 2) ? "*" : "?");
+    }
 }
 
 void print_context(context* ctx) {
-    // vga_clear_screen();
+     vga_clear_screen();
     print_fyr("\r\nKernel panic: unhandled interrupt %x, interrupted process context:\r\n", ctx->vector);
     print_fyr("  EAX = %x ", ctx->eax);
     print_fyr("ECX = %x ", ctx->ecx);
@@ -68,9 +79,28 @@ void print_context(context* ctx) {
 
 void panic_handler(context* ctx) {
     print_context(ctx);
-    // for (;;) {}
+     for (;;);
 }
 
 static void timer_interrupt(context* ctx) {
-    print_fyr("GLOBAL_COUNTER_TIMER = %d\r\n", GLOBAL_COUNTER_TIMER++);
+    u32 pos_carr = carriage_get_position();
+
+    u16 len = 1;
+    for (u32 i = GLOBAL_COUNTER_TIMER / 10; i > 0; i /= 10) len++;
+
+    carriage_set_position(0, SIZE_Y_DISPLAY - 3);
+    print_fyr("+");
+    for (u16 i = 0; i < len + 2; i++) print_fyr("-");
+    print_fyr("+");
+
+    carriage_set_position(0, SIZE_Y_DISPLAY - 2);
+    print_fyr("| %d |", GLOBAL_COUNTER_TIMER++);
+
+    carriage_set_position(0, SIZE_Y_DISPLAY - 1);
+    print_fyr("+");
+    for (u16 i = 0; i < len + 2; i++) print_fyr("-");
+    print_fyr("+");
+
+    carriage_set_position(pos_carr >> 16, (u16)pos_carr);
+    carriage_set_position(0, 0);
 }

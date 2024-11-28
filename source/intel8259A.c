@@ -31,30 +31,34 @@ void outb(u16 port, byte data) {
 
 void configure_intel8259(u16 command_port, u16 data_port, enum intel8259_type type) {
     byte icw1 = 0b00010001;
-    byte icw2 = type == master ? 0x20 : 0x28;
+    byte icw2 = type == master ? start_vector_master : start_vector_slave;
     byte icw3 = type == master ? 0b00000100: 0x2;
     byte icw4 = 0b00000001;
+
     outb(command_port, icw1);
-    outb(0x80, 0xAD);
+    outb(diagnostic_port_bios, magic_const);
+
     outb(data_port, icw2);
-    outb(0x80, 0xAD);
+    outb(diagnostic_port_bios, magic_const);
+
     outb(data_port, icw3);
-    outb(0x80, 0xAD);
+    outb(diagnostic_port_bios, magic_const);
+
     outb(data_port, icw4);
-    outb(0x80, 0xAD);
+    outb(diagnostic_port_bios, magic_const);
 }
 
 void configure_intel8258A_all() {
-    configure_intel8259(0x20, 0x21, master);
-    configure_intel8259(0xA0, 0xA1, slave);
+    configure_intel8259(command_port_master, data_port_master, master);
+    configure_intel8259(command_port_slave, data_port_slave, slave);
     configure_intel8259_mask(master, 0b11111100);
     configure_intel8259_mask(slave, 0b11111111);
 }
 
 void configure_intel8259_mask(enum intel8259_type type, byte mask) {
     if (type == master) {
-        outb(0x21, mask);
+        outb(data_port_master, mask);
     } else {
-        outb(0xA1, mask);
+        outb(data_port_slave, mask);
     }
 }

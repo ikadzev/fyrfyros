@@ -5,7 +5,7 @@
 
 #include "headers/vga_driver.h"
 
-struct{
+struct {
     u16 x;
     u16 y;
     u16 now_char;
@@ -58,6 +58,10 @@ void carriage_set_position(u16 x, u16 y) {
     }
     carriage.x = x;
     carriage.y = y;
+}
+
+u32 carriage_get_position() {
+    return (((u32) carriage.x) << 16 ) | carriage.y;
 }
 
 void carriage_shift_up_line() {
