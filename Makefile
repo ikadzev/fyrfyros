@@ -23,6 +23,9 @@ build: $(TARGET).img
 clean:
 	rm -r $(BUILD_DIR)
 
+log:
+	git log --oneline --all --graph
+
 $(TARGET).img: $(BUILD_DIR)/$(KERNEL).bin $(BUILD_DIR)/$(TARGET).bin
 	dd if=/dev/zero of=$@ bs=1024 count=1440
 	dd if=$(BUILD_DIR)/$(TARGET).bin of=$@ conv=notrunc
