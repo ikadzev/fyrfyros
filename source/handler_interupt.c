@@ -49,15 +49,12 @@ void interrupt_handler(context* ctx) {
 }
 
 void trap_handler(context* ctx) {
-//    sti();
-    for (;;) {
-        for (u32 i = 0; i < 0xFF0; i++);
-        print_fyr((GLOBAL_COUNTER_TIMER % 2) ? "*" : "?");
-    }
+    print_context(ctx);
+    for (;;);
 }
 
 void print_context(context* ctx) {
-     vga_clear_screen();
+    vga_clear_screen();
     print_fyr("\r\nKernel panic: unhandled interrupt %x, interrupted process context:\r\n", ctx->vector);
     print_fyr("  EAX = %x ", ctx->eax);
     print_fyr("ECX = %x ", ctx->ecx);
@@ -79,7 +76,7 @@ void print_context(context* ctx) {
 
 void panic_handler(context* ctx) {
     print_context(ctx);
-     for (;;);
+    for (;;);
 }
 
 static void timer_interrupt(context* ctx) {

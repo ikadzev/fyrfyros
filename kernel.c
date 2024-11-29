@@ -7,6 +7,7 @@
 
 void print_logo();
 
+void experiment();
 
 void kernel_entry() {
     cli();
@@ -15,7 +16,12 @@ void kernel_entry() {
     create_lidt();
     configure_intel8258A_all();
     sti();
-    int a = 1/0;
+    // for (;;) {
+    //     for (u32 i = 0; i < 0x2000; i++);
+    //     print_fyr("*");
+    // }
+    // int a = 1/0;
+    // experiment();
     for (;;);
 }
 

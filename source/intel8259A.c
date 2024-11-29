@@ -51,8 +51,8 @@ void configure_intel8259(u16 command_port, u16 data_port, enum intel8259_type ty
 void configure_intel8258A_all() {
     configure_intel8259(command_port_master, data_port_master, master);
     configure_intel8259(command_port_slave, data_port_slave, slave);
-    configure_intel8259_mask(master, 0b11111100);
-    configure_intel8259_mask(slave, 0b11111111);
+    configure_intel8259_mask(master, 0);
+    configure_intel8259_mask(slave, 0);
 }
 
 void configure_intel8259_mask(enum intel8259_type type, byte mask) {

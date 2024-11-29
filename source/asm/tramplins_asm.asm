@@ -275,7 +275,7 @@ collect_context:
     mov ds, ax
     mov es, ax
     call interrupt_handler
-    pop esp
+    add esp, 4
     popa
     pop gs
     pop fs
