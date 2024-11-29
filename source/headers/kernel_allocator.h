@@ -5,6 +5,8 @@
 #ifndef FYRFYROS_KERNEL_ALLOCATOR_H
 #define FYRFYROS_KERNEL_ALLOCATOR_H
 
+#include "macroses.h"
+
 #define TRUE 1
 #define FALSE 0
 #define NULL 0

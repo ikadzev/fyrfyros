@@ -5,6 +5,8 @@
 #ifndef FYRFYROS_TRAMPLINS_H
 #define FYRFYROS_TRAMPLINS_H
 
+#include "macroses.h"
+
 #define COUNT_INTERRUPT 256
 
 enum gate_type {
@@ -21,23 +23,22 @@ enum descriptor_privilege_level {
 
 #pragma pack(push, 1)
 typedef struct gate_descriptor {
-    unsigned short shift_low;
-    unsigned short selector_segment;
-    unsigned char reserve1;
-    unsigned char gate_type : 4;
-    unsigned char reserve2 : 1;
-    unsigned char dpl : 2;
-    unsigned char reserve3 : 1;
-    unsigned short shift_height;
+    u16 shift_low;
+    u16 selector_segment;
+    byte reserve1;
+    byte gate_type : 4;
+    byte reserve2 : 1;
+    byte dpl : 2;
+    byte reserve3 : 1;
+    u16 shift_height;
 } gate_descriptor;
+
 typedef struct table_gate_descriptor {
-    unsigned short size;
-    unsigned int address;
+    u16 size;
+    u32 address;
 } table_gate_descriptor;
-#pragma pack(pop)
 
 static gate_descriptor *generate_idt();
 static gate_descriptor generate_gate_descriptor(void* tramplin_ptr, enum gate_type type, enum descriptor_privilege_level level);
 void create_lidt();
-static void panic_handler(unsigned char vector);
 #endif //FYRFYROS_TRAMPLINS_H

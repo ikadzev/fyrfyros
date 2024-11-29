@@ -5,12 +5,11 @@
 
 #include "headers/vga_driver.h"
 
-struct{
-    unsigned short x;
-    unsigned short y;
-    unsigned short now_char;
+struct {
+    u16 x;
+    u16 y;
+    u16 now_char;
 } carriage;
-
 
 void carriage_inc() {
     carriage.x++;
@@ -23,14 +22,14 @@ void carriage_inc() {
     }
 }
 
-void carriage_shift(int shift) {
+void carriage_shift(i32 shift) {
     if ( shift < 0) {
-        int x_temp = (int) carriage.x + shift % SIZE_X_DISPLAY;
-        int y_temp = (int) carriage.y + shift / SIZE_X_DISPLAY - (int)(x_temp < 0);
+        i32 x_temp = (i32) carriage.x + shift % SIZE_X_DISPLAY;
+        i32 y_temp = (i32) carriage.y + shift / SIZE_X_DISPLAY - (i32)(x_temp < 0);
 
-        carriage.y = (unsigned short)(y_temp < 0 ? 0 : y_temp);
-        carriage.x = (unsigned short)(x_temp < 0 ? SIZE_X_DISPLAY + x_temp : x_temp);
-        carriage.x = (unsigned short)(y_temp < 0 ? 0 : carriage.x);
+        carriage.y = (u16)(y_temp < 0 ? 0 : y_temp);
+        carriage.x = (u16)(x_temp < 0 ? SIZE_X_DISPLAY + x_temp : x_temp);
+        carriage.x = (u16)(y_temp < 0 ? 0 : carriage.x);
     } else {
         carriage.x += shift - 1;
         carriage_inc();
@@ -52,13 +51,17 @@ void carriage_new_line() {
     carriage_inc();
 }
 
-void carriage_set_position(unsigned short x, unsigned short y) {
+void carriage_set_position(u16 x, u16 y) {
     if ((x >= SIZE_X_DISPLAY) || (y >= SIZE_Y_DISPLAY)) {
         vga_error();
         return;
     }
     carriage.x = x;
     carriage.y = y;
+}
+
+u32 carriage_get_position() {
+    return (((u32) carriage.x) << 16 ) | carriage.y;
 }
 
 void carriage_shift_up_line() {
@@ -70,19 +73,19 @@ void carriage_shift_down_line() {
 }
 
 void vga_init() {
-    carriage.x = 0;
-    carriage.y = 0;
-    carriage.now_char = 0;
     vga_clear_screen();
 }
 
 void vga_clear_screen() {
     for (unsigned long i = START_DISPLAY_ADDRESS; i < END_DISPLAY_ADDRESS; i += 2) {
-        *((unsigned short*) i) = black_f + black_b;
+        *((u16*) i) = black_f + black_b;
     }
+    carriage.x = 0;
+    carriage.y = 0;
+    carriage.now_char = 0;
 }
 
-void vga_print_char(char sym, color_front front, color_back back, unsigned short x, unsigned short y) {
+void vga_print_char(char sym, color_front front, color_back back, u16 x, u16 y) {
     carriage_set_position(x, y);
     vga_print_char_carriage(sym, front, back);
 }
@@ -108,36 +111,36 @@ void vga_print_char_carriage(char sym, color_front front, color_back back) {
             break;
         }
         default: {
-            *((unsigned short*) pos) = (front + back + (unsigned short)sym);
+            *((u16*) pos) = (front + back + (u16)sym);
             carriage_inc();
         }
     }
 }
 
 void vga_scroll_line(char flag_down) {
-    short step = (flag_down ? SIZE_X_DISPLAY : -SIZE_X_DISPLAY);
-    unsigned short start_coord = (flag_down ? 0 : SIZE_X_DISPLAY * (SIZE_Y_DISPLAY - 1));
-    unsigned short end_coord = (flag_down ? SIZE_X_DISPLAY * (SIZE_Y_DISPLAY - 1) : 0);
+    i16 step = (flag_down ? SIZE_X_DISPLAY : -SIZE_X_DISPLAY);
+    u16 start_coord = (flag_down ? 0 : SIZE_X_DISPLAY * (SIZE_Y_DISPLAY - 1));
+    u16 end_coord = (flag_down ? SIZE_X_DISPLAY * (SIZE_Y_DISPLAY - 1) : 0);
 
-    for (int j = 0; j < SIZE_X_DISPLAY; ++j) {
-        unsigned short* input_address = (unsigned short*)(START_DISPLAY_ADDRESS + 2 * (start_coord + j));
-        unsigned short* output_address = input_address + step;
-        for (int i = 0; i < SIZE_Y_DISPLAY - 1; ++i) {
+    for (i32 j = 0; j < SIZE_X_DISPLAY; ++j) {
+        u16* input_address = (u16*)(START_DISPLAY_ADDRESS + 2 * (start_coord + j));
+        u16* output_address = input_address + step;
+        for (i32 i = 0; i < SIZE_Y_DISPLAY - 1; ++i) {
             *input_address = *output_address;
             input_address = output_address;
             output_address += step; // !!!
         }
     }
 
-    for (int j = 0; j < SIZE_X_DISPLAY; ++j) {
-        *(unsigned short*)(START_DISPLAY_ADDRESS + 2 * (end_coord + j)) = black_f + black_f;
+    for (i32 j = 0; j < SIZE_X_DISPLAY; ++j) {
+        *(u16*)(START_DISPLAY_ADDRESS + 2 * (end_coord + j)) = black_f + black_f;
     }
 }
 
 void vga_error() {
-    *((short int*) 0xB8000) = 0x4F00 + (int) 'E';
-    *((short int*) 0xB8002) = 0x4F00 + (int) 'R';
-    *((short int*) 0xB8004) = 0x4F00 + (int) 'R';
-    *((short int*) 0xB8006) = 0x4F00 + (int) 'O';
-    *((short int*) 0xB8008) = 0x4F00 + (int) 'R';
+    *((i16*) 0xB8000) = 0x4F00 + (i32) 'E';
+    *((i16*) 0xB8002) = 0x4F00 + (i32) 'R';
+    *((i16*) 0xB8004) = 0x4F00 + (i32) 'R';
+    *((i16*) 0xB8006) = 0x4F00 + (i32) 'O';
+    *((i16*) 0xB8008) = 0x4F00 + (i32) 'R';
 }

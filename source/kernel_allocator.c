@@ -6,7 +6,7 @@ void kernel_start_allocator() {
 
 void kernel_init_allocator(PullAllocator* allocator, size_t N) {
     allocator->data = (void*)START_ALLOCATE;
-    for (int i = 0; i < COUNT_ARENAS; ++i) {
+    for (i32 i = 0; i < COUNT_ARENAS; ++i) {
         allocator->ptrs[i] = NULL;
         allocator->lens[i] = 0;
     }
