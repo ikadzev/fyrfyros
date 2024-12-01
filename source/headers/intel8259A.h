@@ -6,16 +6,16 @@
 
 #include "macroses.h"
 
-#define magic_const 0xAD
+#define MAGIC_CONST 0xAD
 
-#define data_port_slave 0xA1
-#define data_port_master 0x21
-#define command_port_slave 0xA0
-#define command_port_master 0x20
-#define diagnostic_port_bios 0x80
+#define DATA_PORT_SLAVE 0xA1
+#define DATA_PORT_MASTER 0x21
+#define COMMAND_PORT_SLAVE 0xA0
+#define COMMAND_PORT_MASTER 0x20
+#define DIAGNOSTIC_PORT_BIOS 0x80
 
-#define start_vector_slave 0x28
-#define start_vector_master 0x20
+#define START_VECTOR_SLAVE 0x28
+#define START_VECTOR_MASTER 0x20
 
 enum intel8259_type {
     slave,

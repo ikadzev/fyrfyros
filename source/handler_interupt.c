@@ -35,10 +35,10 @@ void interrupt_handler(context* ctx) {
             eoi(master);
             break;
         default:
-            if (ctx->vector < start_vector_master) {
+            if (ctx->vector < START_VECTOR_MASTER) {
                 trap_handler(ctx);
             } else if (ctx->vector < 0x30) {
-                if (ctx->vector >= start_vector_slave) {
+                if (ctx->vector >= START_VECTOR_SLAVE) {
                     eoi(slave);
                 }
                 eoi(master);
