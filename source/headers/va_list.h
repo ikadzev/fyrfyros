@@ -13,8 +13,8 @@ typedef struct va_list {
 
 #define va_start(va_l, last_arg)    va_l.now_address = &last_arg + 1
 #define va_arg(va_l, type) ( \
-    va_l.now_address = (void*)((char*)va_l.now_address + sizeof(type) + (sizeof(type) % 4 == 0 ? 0 : (4 - sizeof(type) % 4))), \
-    *((type*)((char*)va_l.now_address - sizeof(type) - (sizeof(type) % 4 == 0 ? 0 : (4 - sizeof(type) % 4))))                             \
+    va_l.now_address = (void*)((byte*)va_l.now_address + sizeof(type) + (sizeof(type) % 4 == 0 ? 0 : (4 - sizeof(type) % 4))), \
+    *((type*)((byte*)va_l.now_address - sizeof(type) - (sizeof(type) % 4 == 0 ? 0 : (4 - sizeof(type) % 4))))                             \
 )
 #define va_end(va_l)
 #endif //FYRFYROS_VA_LIST_H
