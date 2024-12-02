@@ -17,8 +17,8 @@ void create_virtual_kernel() {
     for (u32 i = 0; i < 1024; i++) {
         *((u32*)(OFFSET_PAGE_DIR + i * 4)) = 0;
     }
-    *((u32*)(OFFSET_PAGE_DIR)) =  0b0000000000000010000111;
-    *((u32*)(OFFSET_PAGE_DIR + 4)) = (1 << 22) | 0b0000000000000010000111;
+    *((u32*)(OFFSET_PAGE_DIR)) =  0b10000111;
+    *((u32*)(OFFSET_PAGE_DIR + 4)) = (1 << 22) | 0b10000111;
     __asm__ __volatile__ (
             ".intel_syntax noprefix\n\t"
             "push eax\n\t"
@@ -70,14 +70,4 @@ void create_virtual_kernel() {
             ".att_syntax prefix\n\t"
             );
 }
-#endif
-
-u32* create_page_table() {
-    void* base_page = kernel_malloc(SIZE_TABLE);
-}
-
-#ifdef PSE_MODE
-void create_page_directory_with_pse(u32 start_frame, u32 count_list);
-#else
-void create_page_directory_without_pse(u32 start_frame, u32 count_list);
 #endif

@@ -19,12 +19,5 @@ void init_virtual_address();  // инициализация всех вирту�
 void init_virtual_kernel();  // инициализация виртуального ядра
 
 void create_virtual_kernel();
-void create_page_directory(u32 start_frame);
-u32* create_page_table();
-#ifdef PSE_MODE
-void create_page_directory_with_pse(u32 start_frame, u32 count_list);
-#else
-void create_page_directory_without_pse(u32 start_frame, u32 count_list);
-#endif
 
 #endif //FYRFYROS_PAGE_TRANSLATOR_H
