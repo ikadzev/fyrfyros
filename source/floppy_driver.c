@@ -10,37 +10,40 @@ void floppy_detect_drives() {
 
 }
 
-void floppy_write_cmd(int base, char cmd) {
-    if(0x80 & inb(base+FLOPPY_MSR)) return (void) outb(base+FLOPPY_FIFO, cmd);
+void floppy_write_cmd(char cmd) {
+    if(0x80 & inb(FLOPPY_MSR)) return (void) outb(FLOPPY_FIFO, cmd);
 }
 
-byte floppy_read_data(int base) {
-    if(0x80 & inb(base+FLOPPY_MSR)) return inb(base+FLOPPY_FIFO);
+byte floppy_read_data() {
+    if(0x80 & inb(FLOPPY_MSR)) return inb(FLOPPY_FIFO);
 }
 
-void floppy_check_interrupt(int base, int *st0, int *cyl) {
+void floppy_check_interrupt(int *st0, int *cyl) {
     
-    floppy_write_cmd(base, CMD_SENSE_INTERRUPT);
+    floppy_write_cmd(CMD_SENSE_INTERRUPT);
 
-    *st0 = floppy_read_data(base);
-    *cyl = floppy_read_data(base);
+    *st0 = floppy_read_data();
+    *cyl = floppy_read_data();
 }
 
 // Move to cylinder 0, which calibrates the drive..
-void floppy_calibrate(int base) {
-    floppy_motor(base, 1);
-    floppy_write_cmd(base, CMD_RECALIBRATE);
-    floppy_write_cmd(base, 0);
-    floppy_motor(base, 0);
+void floppy_calibrate() {
+    floppy_motor(1);
+    floppy_write_cmd(CMD_RECALIBRATE);
+    floppy_write_cmd(0);
+    // irq_wait(floppy_irq);
+    int st0, cyl;
+    floppy_check_interrupt(&st0, &cyl);
+    floppy_motor(0);
 }
 
-void floppy_reset(int base) {
+void floppy_reset() {
 
-    outb(base + FLOPPY_DOR, 0x00); // disable controller
-    outb(base + FLOPPY_DOR, 0x0C); // enable controller
+    outb(FLOPPY_DOR, 0x00); // disable controller
+    outb(FLOPPY_DOR, 0x0C); // enable controller
 
     // set transfer speed 500kb/s
-    outb(base + FLOPPY_CCR, 0x00);
+    outb(FLOPPY_CCR, 0x00);
 
     //  - 1st byte is: bits[7:4] = steprate, bits[3:0] = head unload time
     //  - 2nd byte is: bits[7:1] = head load time, bit[0] = no-DMA
@@ -49,28 +52,31 @@ void floppy_reset(int base) {
     //  head_unload = 8ms * entry * (1MB/s / xfer_rate), where entry 0 -> 16
     //  head_load   = 1ms * entry * (1MB/s / xfer_rate), where entry 0 -> 128
     //
-    floppy_write_cmd(base, CMD_SPECIFY);
-    floppy_write_cmd(base, 0xdf); /* steprate = 3ms, unload time = 240ms */
-    floppy_write_cmd(base, 0x02); /* load time = 16ms, no-DMA = 0 */
-    floppy_calibrate(base);
+    floppy_write_cmd(CMD_SPECIFY);
+    floppy_write_cmd(0xdf); /* steprate = 3ms, unload time = 240ms */
+    floppy_write_cmd(0x02); /* load time = 16ms, no-DMA = 0 */
+    floppy_calibrate();
 }
 
 
-void floppy_motor(int base, int on) { 
+void floppy_motor(int on) { 
     if(on) {
-        outb(base + FLOPPY_DOR, 0x1c);
+        outb(FLOPPY_DOR, 0x1c);
     } else {
-        outb(base + FLOPPY_DOR, 0x0c);
+        outb(FLOPPY_DOR, 0x0c);
     }
 }
 
 // Seek for a given cylinder, with a given head
 void floppy_seek(int base, unsigned cyli, int head) {
-    floppy_motor(base, 1);
-    floppy_write_cmd(base, CMD_SEEK);
-    floppy_write_cmd(base, head<<2);
-    floppy_write_cmd(base, cyli);
-    floppy_motor(base, 0);
+    floppy_motor(1);
+    floppy_write_cmd(CMD_SEEK);
+    floppy_write_cmd(head<<2);
+    floppy_write_cmd(cyli);
+    // irq_wait(floppy_irq);
+    int st0, cyl;
+    floppy_check_interrupt(&st0, &cyl);
+    floppy_motor(0);
 }
 
 // // Used by floppy_dma_init and floppy_do_track to specify direction

@@ -2,14 +2,15 @@
 #include "printf.h"
 
 static const int floppy_base = 0x03f0; // standard base address of the primary floppy controller
-static const int floppy_irq = 6; // standard IRQ number for floppy controllers
+static const int floppy_irq = 26; // standard IRQ number for floppy controllers
 
 // The registers of interest. There are more, but we only use these here.
 enum floppy_registers {
-   FLOPPY_DOR  = 2,  // digital output register
-   FLOPPY_MSR  = 4,  // master status register, read only
-   FLOPPY_FIFO = 5,  // data FIFO, in DMA operation for commands
-   FLOPPY_CCR  = 7   // configuration control register, write only
+    FLOPPY_BASE = 0x3F0,
+    FLOPPY_DOR  = 0x3F2,  // digital output register
+    FLOPPY_MSR  = 0x3F4,  // master status register, read only
+    FLOPPY_FIFO = 0x3F5,  // data FIFO, in DMA operation for commands
+    FLOPPY_CCR  = 0x3F7   // configuration control register, write only
 };
 
 // The commands of interest. There are more, but we only use these here.
@@ -35,10 +36,10 @@ static const char * drive_types[8] = {
 };
 
 void floppy_detect_drives();
-void floppy_write_cmd(int, char);
-byte floppy_read_cmd(int);
-void floppy_check_interrupt(int, int*, int*);
-void floppy_calibrate(int);
-void floppy_reset(int);
-void floppy_motor(int, int);
+void floppy_write_cmd(char);
+byte floppy_read_cmd();
+void floppy_check_interrupt(int*, int*);
+void floppy_calibrate();
+void floppy_reset();
+void floppy_motor(int);
 void floppy_seek(int, unsigned, int);
