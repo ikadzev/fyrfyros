@@ -5,7 +5,6 @@
 #include "headers/page_translator.h"
 #include "headers/page_allocator.h"
 #include "headers/asm_fync.h"
-#include "headers/vga_driver.h"
 
 
 void init_virtual_address() {
@@ -18,7 +17,7 @@ void init_virtual_address() {
 
 #ifdef PSE_MODE
 void create_virtual_kernel_with_pse() {
-    u32* page_dir = kernel_calloc(1024, sizeof(u32));
+    u32* page_dir = kernel_calloc(SIZE_TABLE, sizeof(u32));
     page_dir[0] = create_pde_with_pse(1,0);
     page_dir[1] = create_pde_with_pse(1,0);
     set_CR3(page_dir);
@@ -45,44 +44,47 @@ void delete_pde_with_pse(u32 pde){
     page_free((u32*)ptr_pde);
 }
 #else
-void create_virtual_kernel() {
-    for (u32 i = 0; i < 1024; i++) {
-        *((u32*)(OFFSET_PAGE_DIR + i * 4)) = 0;
-    }
-    u32* base_page = kernel_malloc(SIZE_TABLE);
-    *((u32*)(OFFSET_PAGE_DIR)) = (u32)base_page + 0b111;
-    for (u32 i = 0; i < 1024; i++){
-        if(i == 2) {
-            *(base_page + i) = 0;
-        } else {
-            *(base_page + i) = i * 0x1000 + 0b111;
+void create_virtual_kernel_without_pse() {
+    u32* page_dir = kernel_calloc(SIZE_TABLE, sizeof(u32));
+    for (int i = 0; i < 2; ++i) {
+        page_dir[i] = create_pde_without_pse(1,0);
+        u32* ptr = (u32*)((page_dir[i] >> 12) << 12);
+        for (u32 j = 0; j < SIZE_TABLE; ++j){
+            ptr[j] = create_pte_without_pse(1,0);
         }
     }
-    base_page = kernel_malloc(SIZE_TABLE);
-    print_hex((u32)base_page);
-    *((u32*)(OFFSET_PAGE_DIR + 4)) = (u32)base_page + 0b111;
-    for (u32 i = 0; i < 1024; i++){
-        *(base_page + i) = 0x400000 + i * 0x1000 + 0b111;
+    set_CR3(page_dir);
+    clear_bit_CR4(5);
+    expose_bit_CR0(32);
+}
+u32 create_pde_without_pse(byte write_mode, byte user_mode) {
+    u32* address = kernel_calloc(SIZE_TABLE, sizeof(u32));
+    u32 pde = 1;
+    pde |= (write_mode & 1) << 1;
+    pde |= (user_mode & 1) << 2;
+    pde |= ((u32)address);
+    return pde;
+}
+void delete_pde_without_pse(u32 pde) {
+    u32* ptr_pde = (u32*)((pde << 12) >> 12);
+    for (int i = 0; i < SIZE_TABLE; ++i) {
+        delete_pte_without_pse(ptr_pde[i]);
     }
-    __asm__ __volatile__ (
-            ".intel_syntax noprefix\n\t"
-            "push eax\n\t"
-            "mov eax, 0x1000\n\t"
-            "mov cr3, eax\n\t"
-            "mov eax, cr4\n\t"
-            "and eax, 0b11111111111111111111111111101111\n\t"
-            "mov cr4, eax\n\t"
-            "mov eax, cr0\n\t"
-            "or eax, 0b10000000000000000000000000000000\n\t"
-            "mov cr0, eax\n\t"
-            "pop eax\n\t"
-            ".att_syntax prefix\n\t"
-            );
+    kernel_free(ptr_pde);
+}
+u32 create_pte_without_pse(byte write_mode, byte user_mode) {
+    u32 pte = 1;
+    u32 address = (u32)page_malloc(sizeof(u32));
+    address = (address - PAGE_START_ALLOCATE) / 4;
+    pte |= (write_mode & 1) << 1;
+    pte |= (user_mode & 1) << 2;
+    pte |= (address << 12);
+    return pte;
+}
+void delete_pte_without_pse(u32 pte) {
+    u32 ptr_pte = pte >> 12;
+    ptr_pte = (ptr_pte * 4) + PAGE_START_ALLOCATE;
+    page_free((u32*)ptr_pte);
 }
 #endif
 
-#ifdef PSE_MODE
-
-#else
-void create_page_directory_without_pse(u32 start_frame, u32 count_list);
-#endif
