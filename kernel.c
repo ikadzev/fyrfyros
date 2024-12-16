@@ -5,6 +5,7 @@
 #include "source/headers/intel8259A.h"
 #include "source/headers/handler_interupt.h"
 #include "source/headers/page_translator.h"
+#include "source/headers/page_allocator.h"
 #include "source/headers/floppy_driver.h"
 
 void print_logo();
@@ -12,12 +13,12 @@ void print_logo();
 void kernel_entry() {
     cli();
     kernel_start_allocator();
-    init_virtual_kernel();
+    page_start_allocator();
+    init_virtual_address();
     create_lidt();
     configure_intel8258A_all();
-    vga_clear_screen();
+    //vga_clear_screen();
     sti();
-    floppy_detect_drives();
     for (;;);
 }
 

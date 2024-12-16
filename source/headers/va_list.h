@@ -5,6 +5,7 @@
 #ifndef FYRFYROS_VA_LIST_H
 #define FYRFYROS_VA_LIST_H
 
+#include "_flags.h"
 #include "macroses.h"
 
 typedef struct va_list {

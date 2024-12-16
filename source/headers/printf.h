@@ -5,6 +5,7 @@
 #ifndef FYRFYROS_PRINTF_H
 #define FYRFYROS_PRINTF_H
 
+#include "_flags.h"
 #include "macroses.h"
 
 void print_fyr(char* str, ...);

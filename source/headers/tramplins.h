@@ -5,6 +5,7 @@
 #ifndef FYRFYROS_TRAMPLINS_H
 #define FYRFYROS_TRAMPLINS_H
 
+#include "_flags.h"
 #include "macroses.h"
 
 #define COUNT_INTERRUPT 256

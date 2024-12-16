@@ -262,9 +262,9 @@ global tramplin_FE
 global tramplin_FF
 
 extern interrupt_handler
-extern tet
 
 collect_context:
+
     push ds
     push es
     push fs

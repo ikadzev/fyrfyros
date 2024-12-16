@@ -1,3 +1,4 @@
+#include "_flags.h"
 #include "intel8259A.h"
 #include "printf.h"
 
