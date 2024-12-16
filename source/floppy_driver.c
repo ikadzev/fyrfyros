@@ -1,6 +1,4 @@
 #include "headers/floppy_driver.h"
-#include "headers/intel8259A.h"
-#include "headers/printf.h"
 
 void floppy_detect_drives() {
 

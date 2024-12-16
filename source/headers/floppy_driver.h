@@ -1,3 +1,6 @@
+#include "intel8259A.h"
+#include "printf.h"
+
 static const int floppy_base = 0x03f0; // standard base address of the primary floppy controller
 static const int floppy_irq = 6; // standard IRQ number for floppy controllers
 
@@ -32,3 +35,10 @@ static const char * drive_types[8] = {
 };
 
 void floppy_detect_drives();
+void floppy_write_cmd(int, char);
+byte floppy_read_cmd(int);
+void floppy_check_interrupt(int, int*, int*);
+void floppy_calibrate(int);
+void floppy_reset(int);
+void floppy_motor(int, int);
+void floppy_seek(int, unsigned, int);
