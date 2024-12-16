@@ -26,7 +26,7 @@ void create_virtual_kernel_with_pse() {
 }
 u32 create_pde_with_pse(byte write_mode, byte user_mode) {
     u32 pde = 1;
-    u32 address = (u32)page_malloc(sizeof(u32));
+    u32 address = page_malloc(1);
     address = (address - PAGE_START_ALLOCATE) / 4;
     u32 address_high = address >> 10;
     address = address - (address_high << 10);
@@ -41,7 +41,7 @@ void delete_pde_with_pse(u32 pde){
     u32 ptr_pde = pde >> 22;
     ptr_pde |= (pde >> 13 ) << 24 >> 14;
     ptr_pde = (ptr_pde * 4) + PAGE_START_ALLOCATE;
-    page_free((u32*)ptr_pde);
+    page_free(ptr_pde);
 }
 #else
 void create_virtual_kernel_without_pse() {
@@ -74,7 +74,7 @@ void delete_pde_without_pse(u32 pde) {
 }
 u32 create_pte_without_pse(byte write_mode, byte user_mode) {
     u32 pte = 1;
-    u32 address = (u32)page_malloc(sizeof(u32));
+    u32 address = page_malloc(1);
     address = (address - PAGE_START_ALLOCATE) / 4;
     pte |= (write_mode & 1) << 1;
     pte |= (user_mode & 1) << 2;
@@ -84,7 +84,7 @@ u32 create_pte_without_pse(byte write_mode, byte user_mode) {
 void delete_pte_without_pse(u32 pte) {
     u32 ptr_pte = pte >> 12;
     ptr_pte = (ptr_pte * 4) + PAGE_START_ALLOCATE;
-    page_free((u32*)ptr_pte);
+    page_free(ptr_pte);
 }
 #endif
 

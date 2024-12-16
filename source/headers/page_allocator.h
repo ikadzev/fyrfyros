@@ -32,10 +32,9 @@ static PAGE_PullAllocator PAGE_ALLOCATOR;
 
 void page_start_allocator();
 void page_init_allocator(PAGE_PullAllocator* allocator, size_t N);
-void* page_malloc(size_t size);
-void* page_calloc(size_t num, size_t size);
-void* page_realloc(void* ptr, size_t new_size);
-void page_free(void* ptr);
+u32 page_malloc(size_t size);
+u32 page_calloc(size_t num, size_t size);
+void page_free(u32 ptr);
 void page_memcpy(void* in, void* out, size_t size);
 size_t page_get_size_block(void* finish, void* start);
 
