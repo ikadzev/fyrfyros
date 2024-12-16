@@ -5,10 +5,9 @@
 #include "source/headers/intel8259A.h"
 #include "source/headers/handler_interupt.h"
 #include "source/headers/page_translator.h"
+#include "source/headers/floppy_driver.h"
 
 void print_logo();
-
-void experiment();
 
 void kernel_entry() {
     cli();
@@ -18,12 +17,7 @@ void kernel_entry() {
     configure_intel8258A_all();
     vga_clear_screen();
     sti();
-    // for (;;) {
-    //     for (u32 i = 0; i < 0x2000; i++);
-    //     print_fyr("*");
-    // }
-    // int a = 1/0;
-    // experiment();
+    floppy_detect_drives();
     for (;;);
 }
 
