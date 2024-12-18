@@ -17,8 +17,21 @@ void kernel_entry() {
     init_virtual_address();
     create_lidt();
     configure_intel8258A_all();
-    //vga_clear_screen();
+    vga_clear_screen();
+    //floppy_print_MSR();
+    //floppy_print_DOR();
     sti();
+    floppy_init();
+    floppy_motor_start(0);
+    //floppy_print_DOR();
+    //floppy_print_MSR();
+    byte * r = (byte *)0x1000;
+    r[0] = 0x11;
+    r = flpydsk_read_sector(1);
+    print_hex((u32)r);
+    for (int i = 0; i < 10; ++i) {
+        print_unsigned_hex(r[i]);
+    }
     for (;;);
 }
 

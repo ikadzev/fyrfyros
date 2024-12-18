@@ -5,6 +5,8 @@
 #include "headers/handler_interupt.h"
 #include "headers/intel8259A.h"
 
+extern void expose__floppy_irq();
+
 u32 GLOBAL_COUNTER_TIMER = 0x0;
 
 void eoi(enum intel8259_type cont) {
@@ -17,14 +19,10 @@ void interrupt_handler(context* ctx) {
             //timer_interrupt(ctx);
             eoi(master);
             break;
-            /*
-        case 0x21:
-            u32 ch = inb(0x60);
-            vga_clear_screen();
-            print_hex(ch);
+        case 0x26:
+            expose__floppy_irq();
             eoi(master);
             break;
-             */
         default:
             if (ctx->vector < START_VECTOR_MASTER) {
                 trap_handler(ctx);

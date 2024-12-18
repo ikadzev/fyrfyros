@@ -1,296 +1,282 @@
 #include "headers/floppy_driver.h"
+#include "headers/printf.h"
+#include "headers/loger.h"
 
-void floppy_detect_drives() {
+byte _floppy_irq;
 
-   outb(0x70, 0x10);
-   unsigned drives = inb(0x71);
-
-   print_fyr(" - Floppy drive 0: %s\r\n", drive_types[drives >> 4]);
-   print_fyr(" - Floppy drive 1: %s\r\n", drive_types[drives & 0xf]);
-
+void floppy_init() {
+    floppy_initialize_dma();
+    flpydsk_reset();
+    flpydsk_drive_data (13, 1, 0xf, 1);
+    //outb(FLOPPY_FIFO, CMD_VERSION); // raboyaet
+    //byte status = inb(FLOPPY_FIFO);
+    //if (status != 0x90) {
+    //    print_fyr("ERROR");
+    //    for(;;);
+    //}
+    //log_massage("answer: ",inb(FLOPPY_DOR),1);
+    //log_massage("", inb(FLOPPY_MSR), 1);
 }
 
-void floppy_write_cmd(char cmd) {
-    if(0x80 & inb(FLOPPY_MSR)) return (void) outb(FLOPPY_FIFO, cmd);
+void floppy_send_command (byte cmd) {
+    for (int i = 0; i < 500; i++ )
+        if (inb(FLOPPY_MSR) & FLOPPY_MSR_MASK_DATAREG)
+            return outb(FLOPPY_FIFO, cmd);
+    log_warning("very bad", -1, 0);
 }
-
-byte floppy_read_data() {
-    if(0x80 & inb(FLOPPY_MSR)) return inb(FLOPPY_FIFO);
-}
-
-void floppy_check_interrupt(int *st0, int *cyl) {
-    
-    floppy_write_cmd(CMD_SENSE_INTERRUPT);
-
-    *st0 = floppy_read_data();
-    *cyl = floppy_read_data();
-}
-
-// Move to cylinder 0, which calibrates the drive..
-void floppy_calibrate() {
-    floppy_motor(1);
-    floppy_write_cmd(CMD_RECALIBRATE);
-    floppy_write_cmd(0);
-    // irq_wait(floppy_irq);
-    int st0, cyl;
-    floppy_check_interrupt(&st0, &cyl);
-    floppy_motor(0);
-}
-
-void floppy_reset() {
-
-    outb(FLOPPY_DOR, 0x00); // disable controller
-    outb(FLOPPY_DOR, 0x0C); // enable controller
-
-    // set transfer speed 500kb/s
-    outb(FLOPPY_CCR, 0x00);
-
-    //  - 1st byte is: bits[7:4] = steprate, bits[3:0] = head unload time
-    //  - 2nd byte is: bits[7:1] = head load time, bit[0] = no-DMA
-    // 
-    //  steprate    = (8.0ms - entry*0.5ms)*(1MB/s / xfer_rate)
-    //  head_unload = 8ms * entry * (1MB/s / xfer_rate), where entry 0 -> 16
-    //  head_load   = 1ms * entry * (1MB/s / xfer_rate), where entry 0 -> 128
-    //
-    floppy_write_cmd(CMD_SPECIFY);
-    floppy_write_cmd(0xdf); /* steprate = 3ms, unload time = 240ms */
-    floppy_write_cmd(0x02); /* load time = 16ms, no-DMA = 0 */
-    floppy_calibrate();
-}
-
-
-void floppy_motor(int on) { 
-    if(on) {
-        outb(FLOPPY_DOR, 0x1c);
-    } else {
-        outb(FLOPPY_DOR, 0x0c);
+byte floppy_read_data () {
+    for (int i = 0; i < 500; i++ ) {
+        if (inb(FLOPPY_MSR) & FLOPPY_MSR_MASK_DATAREG) {
+            return inb(FLOPPY_FIFO);
+        }
     }
+    log_warning("very bad", -1, 0);
 }
 
-// Seek for a given cylinder, with a given head
-void floppy_seek(int base, unsigned cyli, int head) {
-    floppy_motor(1);
-    floppy_write_cmd(CMD_SEEK);
-    floppy_write_cmd(head<<2);
-    floppy_write_cmd(cyli);
-    // irq_wait(floppy_irq);
-    int st0, cyl;
-    floppy_check_interrupt(&st0, &cyl);
-    floppy_motor(0);
+void floppy_print_DOR(){
+    int i = inb(FLOPPY_DOR);
+    log_massage("Using disk: ", i & 0b11, 1);
+    log_massage("Reset/enable(0/1) controller: ", (i & 0b100) != 0, 0);
+    log_massage("IRQ/DMA(0/1) mode: ", (i & 0b1000) != 0, 0);
+    log_massage("Motor disk 0 enable status: ", (i & 0b10000) != 0, 0);
+    log_massage("Motor disk 1 enable status: ", (i & 0b100000) != 0, 0);
+    log_massage("Motor disk 2 enable status: ", (i & 0b1000000) != 0, 0);
+    log_massage("Motor disk 3 enable status: ", (i & 0b10000000) != 0, 0);
+}
+void floppy_print_MSR(){
+    int i = inb(FLOPPY_MSR);
+    log_massage("FDD 0 is busy in seek mode: ", i & 1, 1);
+    log_massage("FDD 1 is busy in seek mode: ", (i >> 1) & 1, 0);
+    log_massage("FDD 2 is busy in seek mode: ", (i >> 2) & 1, 0);
+    log_massage("FDD 3 is busy in seek mode: ", (i >> 3) & 1, 0);
+    log_massage("FDC read or write command in progress: ", (i >> 4) & 1, 0);
+    log_massage("FDC in Non DMA mode: ", (i >> 5) & 1, 0);
+    log_massage("DIO: direction of data transfer between the FDC IC and the CPU: ", (i >> 6) & 1, 0);
+    log_massage("RQM: Data register is ready for data transfer: ", (i >> 7) & 1, 0);
 }
 
-// // Used by floppy_dma_init and floppy_do_track to specify direction
-// typedef enum {
-//     floppy_dir_read = 1,
-//     floppy_dir_write = 2
-// } floppy_dir;
+void floppy_motor_start(byte number) {
+    log_massage("Start floppy_motor_start", -1, 0);
+    if (number > 3) {
+        log_warning("The disk does not exist", -1, 0);
+        return;
+    }
+    byte old_cond = inb(FLOPPY_DOR);
+    log_massage_cond((old_cond & 3) != number, "The wrong disk is selected", -1, 0);
+    outb(FLOPPY_DOR, old_cond | 1 << (number + 4));
+    for (int i = 0; i < 2000000; ++i){
+        outb(0x80, 0);
+    }
+    log_massage("now cond FLOPPY_DOR: ", inb(FLOPPY_DOR), 0);
+    log_massage("End floppy_motor_start", -1, 0);
+}
+void floppy_motor_end(byte number) {
+    log_massage("Start floppy_motor_end", -1, 0);
+    if (number > 3) {
+        log_warning("The disk does not exist", -1, 0);
+        return;
+    }
+    byte old_cond = inb(FLOPPY_DOR);
+    log_massage_cond((old_cond & 3) != number, "The wrong disk is selected", -1, 0);
+    //outb(FLOPPY_DOR, old_cond & (-1 ^ (1 << (number + 4))));
+    log_massage("Now cond FLOPPY_DOR: ", inb(FLOPPY_DOR), 0);
+    log_massage("End floppy_motor_end", -1, 0);
+}
 
+void expose__floppy_irq() {
+    log_massage("expose _floppy_irq", -1, 0);
+    _floppy_irq = 1;
+}
+void clear__floppy_irq() {
+    log_massage("clear _floppy_irq", -1, 0);
+    _floppy_irq = 0;
+}
+void floppy_wait_irq () {
+    cli();
+    log_massage("start wait 0x26", -1, 0);
+    sti();
+    while (!_floppy_irq);
+    log_massage("end wait 0x26", -1, 0);
+}
 
-// // we statically reserve a totally uncomprehensive amount of memory
-// // must be large enough for whatever DMA transfer we might desire
-// // and must not cross 64k borders so easiest thing is to align it
-// // to 2^N boundary at least as big as the block
-// #define floppy_dmalen 0x4800
-// static const char floppy_dmabuf[floppy_dmalen]
-//                   __attribute__((aligned(0x8000)));
+void floppy_initialize_dma () {
+    outb (0x0a,0x06);	//mask dma channel 2
+    outb (0xd8,0xff);	//reset master flip-flop
+    outb (0x04, 0);     //address=0x1000
+    outb (0x04, 0x10);
+    outb (0xd8, 0xff);  //reset master flip-flop
+    outb (0x05, 0xff);  //count to 0x23ff (number of bytes in a 3.5" floppy disk track)
+    outb (0x05, 0x23);
+    outb (0x80, 0);     //external page register = 0
+    outb (0x0a, 0x02);  //unmask dma channel 2
+}
+void floppy_dma_read () {
+    outb (0x0a, 0x06); //mask dma channel 2
+    outb (0x0b, 0x56); //single transfer, address increment, autoinit, read, channel 2
+    outb (0x0a, 0x02); //unmask dma channel 2
+}
+void floppy_dma_write () {
+    outb (0x0a, 0x06); //mask dma channel 2
+    outb (0x0b, 0x5a); //single transfer, address increment, autoinit, write, channel 2
+    outb (0x0a, 0x02); //unmask dma channel 2
+}
 
-// static void floppy_dma_init(floppy_dir dir) {
+void floppy_lba_to_chs (u32 lba, u32* head, u32* track, u32* sector) {
+    *head = ( lba % ( FLPY_SECTORS_PER_TRACK * 2 ) ) / ( FLPY_SECTORS_PER_TRACK );
+    *track = lba / ( FLPY_SECTORS_PER_TRACK * 2 );
+    *sector = lba % FLPY_SECTORS_PER_TRACK + 1;
+}
 
-//     union {
-//         unsigned char b[4]; // 4 bytes
-//         unsigned long l;    // 1 long = 32-bit
-//     } a, c; // address and count
+/*
+    Формат: МФ 0 0 0 1 1 0
+    Параметры:
+        xxxxx HD DR DR0
+        Цилиндр
+        Голова
+        Номер сектора
+        Размер сектора
+        Длина пути
+        Длина GAP3
+        Длина данных
+    Возвращаться:
+        Возврат байта 0: ST0
+        Возврат байта 1: ST1
+        Возврат байта 2: ST2
+        Возвращаемый байт 3: Текущий цилиндр
+        Возвращаемый байт 4: Текущая глава
+        Возвращаемый байт 5: Номер сектора
+        Возвращаемый байт 6: Размер сектора
+ */
 
-//     a.l = (unsigned) &floppy_dmabuf;
-//     c.l = (unsigned) floppy_dmalen - 1; // -1 because of DMA counting
+void flpydsk_write_ccr (u32 val) {
 
-//     // check that address is at most 24-bits (under 16MB)
-//     // check that count is at most 16-bits (DMA limit)
-//     // check that if we add count and address we don't get a carry
-//     // (DMA can't deal with such a carry, this is the 64k boundary limit)
-//     if((a.l >> 24) || (c.l >> 16) || (((a.l&0xffff)+c.l)>>16)) {
-//         panic("floppy_dma_init: static buffer problem\n");
-//     }
+    //! записываем управление конфигурацией
+    outb(FLOPPY_CCR, val);
+}
+void flpydsk_check_int (u32* st0, u32* cyl) {
+    floppy_send_command(FDC_CMD_CHECK_INT);
+    *st0 = floppy_read_data();
+    *cyl = floppy_read_data ();
+}
+void flpydsk_drive_data (u32 stepr, u32 loadt, u32 unloadt, byte dma ) {
+    u32 data = 0;
+    floppy_send_command(FDC_CMD_SPECIFY);
+    data = ( (stepr & 0xf) << 4) | (unloadt & 0xf);
+    floppy_send_command(data);
+    data = (loadt) << 1 | (dma) ? 0 : 1;
+    floppy_send_command (data);
+}
+int flpydsk_calibrate (u32 drive) {
+    clear__floppy_irq();
+    u32 st0, cyl;
+    if (drive >= 4) return -2;
+    floppy_motor_start(0);
+    for (int i = 0; i < 10; i++) {
+        floppy_send_command( FDC_CMD_CALIBRATE );
+        floppy_send_command ( drive );
+        floppy_wait_irq();
+        flpydsk_check_int ( &st0, &cyl);
+        if (!cyl) {
+            floppy_motor_end(0);
+            return 0;
+        }
+    }
+    floppy_motor_end(0);
+    return -1;
+}
+void flpydsk_reset () {
+    clear__floppy_irq();
+    u32 st0, cyl;
 
-//     unsigned char mode;
-//     switch(dir) {
-//         // 01:0:0:01:10 = single/inc/no-auto/to-mem/chan2
-//         case floppy_dir_read:  mode = 0x46; break;
-//         // 01:0:0:10:10 = single/inc/no-auto/from-mem/chan2
-//         case floppy_dir_write: mode = 0x4a; break;
-//         default: panic("floppy_dma_init: invalid direction");
-//                  return; // not reached, please "mode user uninitialized"
-//     }
+    //! reset the controller
+    outb(FLOPPY_DOR, 0);
+    outb(FLOPPY_DOR, FLPYDSK_DOR_MASK_RESET | FLPYDSK_DOR_MASK_DMA);
+    floppy_wait_irq();
+    //! send CHECK_INT/SENSE INTERRUPT command to all drives
+    for (int i=0; i<4; i++)
+        flpydsk_check_int (&st0,&cyl);
+    //! transfer speed 500kb/s
+    flpydsk_write_ccr (0);
+    //! pass mechanical drive info. steprate=3ms, unload time=240ms, load time=16ms
+    flpydsk_drive_data (3,16,240,TRUE);
 
-//     out8_p(0x0a, 0x06);   // mask chan 2
+    //! calibrate the disk
+    flpydsk_calibrate (0);
+}
+int flpydsk_seek ( u32 cyl, u32 head ) {
+    clear__floppy_irq();
+    u32 st0, cyl0;
 
-//     out8_p(0x0c, 0xff);   // reset flip-flop
-//     out8_p(0x04, a.b[0]); //  - address low byte
-//     out8_p(0x04, a.b[1]); //  - address high byte
+   // if (_CurrentDrive >= 4)
+   //     return -1;
 
-//     out8_p(0x81, a.b[2]); // external page register
+    for (int i = 0; i < 10; i++ ) {
 
-//     out8_p(0x0c, 0xff);   // reset flip-flop
-//     out8_p(0x05, c.b[0]); //  - count low byte
-//     out8_p(0x05, c.b[1]); //  - count high byte
+        //! send the command
+        floppy_send_command(FDC_CMD_SEEK);
+        floppy_send_command( (head) << 2);
+        floppy_send_command(cyl);
 
-//     out8_p(0x0b, mode);   // set mode (see above)
+        //! wait for the results phase IRQ
+        floppy_wait_irq();
+        flpydsk_check_int (&st0,&cyl0);
 
-//     out8_p(0x0a, 0x02);   // unmask chan 2
-// }
+        //! found the cylinder?
+        if ( cyl0 == cyl)
+            return 0;
+    }
 
-// // This monster does full cylinder (both tracks) transfer to
-// // the specified direction (since the difference is small).
-// //
-// // It retries (a lot of times) on all errors except write-protection
-// // which is normally caused by mechanical switch on the disk.
-// //
-// int floppy_do_track(int base, unsigned cyl, floppy_dir dir) {
-    
-//     // transfer command, set below
-//     unsigned char cmd;
+    return -1;
+}
 
-//     // Read is MT:MF:SK:0:0:1:1:0, write MT:MF:0:0:1:0:1
-//     // where MT = multitrack, MF = MFM mode, SK = skip deleted
-//     // 
-//     // Specify multitrack and MFM mode
-//     static const int flags = 0xC0;
-//     switch(dir) {
-//         case floppy_dir_read:
-//             cmd = CMD_READ_DATA | flags;
-//             break;
-//         case floppy_dir_write:
-//             cmd = CMD_WRITE_DATA | flags;
-//             break;
-//         default: 
+void flpydsk_read_sector_imp (byte head, byte track, byte sector) {
 
-//             panic("floppy_do_track: invalid direction");
-//             return 0; // not reached, but pleases "cmd used uninitialized"
-//     }
+    u32 st0, cyl;
+    clear__floppy_irq();
+    //! set the DMA for read transfer
+    floppy_dma_read ();
 
-//     // seek both heads
-//     if(floppy_seek(base, cyl, 0)) return -1
-//     if(floppy_seek(base, cyl, 1)) return -1
+    //! read in a sector
+    floppy_send_command(
+            FDC_CMD_READ_SECT | FDC_CMD_EXT_MULTITRACK |
+            FDC_CMD_EXT_SKIP | FDC_CMD_EXT_DENSITY);
+    floppy_send_command (head << 2);
+    floppy_send_command (track);
+    floppy_send_command (head);
+    floppy_send_command (sector);
+    floppy_send_command (FLPYDSK_SECTOR_DTL_512 );
+    floppy_send_command (sector + 1 >= 18 ? 18 : sector + 1 );
+    floppy_send_command (27);
+    floppy_send_command (0xff);
 
-//     int i;
-//     for(i = 0; i < 20; i++) {
-//         floppy_motor(base, motor_on);
+    //! wait for irq
+    floppy_wait_irq();
 
-//         // init dma..
-//         floppy_dma_init(dir);
+    //! read status info
+    for (int j=0; j<7; j++) floppy_read_data();
 
-//         timer_sleep(10); // give some time (100ms) to settle after the seeks
+    //! let FDC know we handled interrupt
+    flpydsk_check_int (&st0,&cyl);
+}
 
-//         floppy_write_cmd(base, cmd);  // set above for current direction
-//         floppy_write_cmd(base, 0);    // 0:0:0:0:0:HD:US1:US0 = head and drive
-//         floppy_write_cmd(base, cyl);  // cylinder
-//         floppy_write_cmd(base, 0);    // first head (should match with above)
-//         floppy_write_cmd(base, 1);    // first sector, strangely counts from 1
-//         floppy_write_cmd(base, 2);    // bytes/sector, 128*2^x (x=2 -> 512)
-//         floppy_write_cmd(base, 18);   // number of tracks to operate on
-//         floppy_write_cmd(base, 0x1b); // GAP3 length, 27 is default for 3.5"
-//         floppy_write_cmd(base, 0xff); // data length (0xff if B/S != 0)
-        
-//         irq_wait(floppy_irq); // don't SENSE_INTERRUPT here!
+byte* flpydsk_read_sector (int sectorLBA) {
 
-//         // first read status information
-//         unsigned char st0, st1, st2, rcy, rhe, rse, bps;
-//         st0 = floppy_read_data(base);
-//         st1 = floppy_read_data(base);
-//         st2 = floppy_read_data(base);
-//         /*
-//          * These are cylinder/head/sector values, updated with some
-//          * rather bizarre logic, that I would like to understand.
-//          *
-//          */
-//         rcy = floppy_read_data(base);
-//         rhe = floppy_read_data(base);
-//         rse = floppy_read_data(base);
-//         // bytes per sector, should be what we programmed in
-//         bps = floppy_read_data(base);
+    //if (_CurrentDrive >= 4)
+        //return 0;
 
-//         int error = 0;
+    //! convert LBA sector to CHS
+    int head=0, track=0, sector=1;
+    floppy_lba_to_chs(sectorLBA, &head, &track, &sector);
 
-//         if(st0 & 0xC0) {
-//             static const char * status[] =
-//             { 0, "error", "invalid command", "drive not ready" };
-//             printk("floppy_do_sector: status = %s\n", status[st0 >> 6]);
-//             error = 1;
-//         }
-//         if(st1 & 0x80) {
-//             printk("floppy_do_sector: end of cylinder\n");
-//             error = 1;
-//         }
-//         if(st0 & 0x08) {
-//             printk("floppy_do_sector: drive not ready\n");
-//             error = 1;
-//         }
-//         if(st1 & 0x20) {
-//             printk("floppy_do_sector: CRC error\n");
-//             error = 1;
-//         }
-//         if(st1 & 0x10) {
-//             printk("floppy_do_sector: controller timeout\n");
-//             error = 1;
-//         }
-//         if(st1 & 0x04) {
-//             printk("floppy_do_sector: no data found\n");
-//             error = 1;
-//         }
-//         if((st1|st2) & 0x01) {
-//             printk("floppy_do_sector: no address mark found\n");
-//             error = 1;
-//         }
-//         if(st2 & 0x40) {
-//             printk("floppy_do_sector: deleted address mark\n");
-//             error = 1;
-//         }
-//         if(st2 & 0x20) {
-//             printk("floppy_do_sector: CRC error in data\n");
-//             error = 1;
-//         }
-//         if(st2 & 0x10) {
-//             printk("floppy_do_sector: wrong cylinder\n");
-//             error = 1;
-//         }
-//         if(st2 & 0x04) {
-//             printk("floppy_do_sector: uPD765 sector not found\n");
-//             error = 1;
-//         }
-//         if(st2 & 0x02) {
-//             printk("floppy_do_sector: bad cylinder\n");
-//             error = 1;
-//         }
-//         if(bps != 0x2) {
-//             printk("floppy_do_sector: wanted 512B/sector, got %d", (1<<(bps+7)));
-//             error = 1;
-//         }
-//         if(st1 & 0x02) {
-//             printk("floppy_do_sector: not writable\n");
-//             error = 2;
-//         }
+    //! turn motor on and seek to track
+    floppy_motor_start(0);
+    if (flpydsk_seek (track, head) != 0)
+        return 0;
 
-//         if(!error) {
-//             floppy_motor(base, floppy_motor_off);
-//             return 0;
-//         }
-//         if(error > 1) {
-//             printk("floppy_do_sector: not retrying..\n");
-//             floppy_motor(base, floppy_motor_off);
-//             return -2;
-//         }
-//     }
+    //! read sector and turn motor off
+    flpydsk_read_sector_imp (head, track, sector);
+    floppy_motor_end(0);
 
-//     printk("floppy_do_sector: 20 retries exhausted\n");
-//     floppy_motor(base, floppy_motor_off);
-//     return -1;
-
-// }
-
-// int floppy_read_track(int base, unsigned cyl) {
-//     return floppy_do_track(base, cyl, floppy_dir_read);
-// }
-
-// int floppy_write_track(int base, unsigned cyl) {
-//     return floppy_do_track(base, cyl, floppy_dir_write);
-// }
+    //! warning: this is a bit hackish
+    return (byte *) 0x1000;
+}
