@@ -12,6 +12,7 @@
 
 
 #define SIZE_TABLE 1024
+#define KERNEL_SIZE_PD 4
 
 void init_virtual_address();  // инициализация всех виртуальных адресов
 

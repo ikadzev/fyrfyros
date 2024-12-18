@@ -18,8 +18,9 @@ void init_virtual_address() {
 #ifdef PSE_MODE
 void create_virtual_kernel_with_pse() {
     u32* page_dir = kernel_calloc(SIZE_TABLE, sizeof(u32));
-    page_dir[0] = create_pde_with_pse(1,0);
-    page_dir[1] = create_pde_with_pse(1,0);
+    for (int i = 0; i < KERNEL_SIZE_PD; ++i) {
+        page_dir[i] = create_pde_with_pse(1,0);
+    }
     set_CR3(page_dir);
     expose_bit_CR4(5);
     expose_bit_CR0(32);
@@ -46,7 +47,7 @@ void delete_pde_with_pse(u32 pde){
 #else
 void create_virtual_kernel_without_pse() {
     u32* page_dir = kernel_calloc(SIZE_TABLE, sizeof(u32));
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < KETNEL_SIZE_PD; ++i) {
         page_dir[i] = create_pde_without_pse(1,0);
         u32* ptr = (u32*)((page_dir[i] >> 12) << 12);
         for (u32 j = 0; j < SIZE_TABLE; ++j){
@@ -75,7 +76,7 @@ void delete_pde_without_pse(u32 pde) {
 u32 create_pte_without_pse(byte write_mode, byte user_mode) {
     u32 pte = 1;
     u32 address = page_malloc(1);
-    address = (address - PAGE_START_ALLOCATE) / 4;
+    address = (address - PAGE_START_ALLOCATE) >> 2;
     pte |= (write_mode & 1) << 1;
     pte |= (user_mode & 1) << 2;
     pte |= (address << 12);

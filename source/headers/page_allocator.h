@@ -12,9 +12,9 @@
 #define PAGE_COUNT_ARENAS 1
 #define PAGE_BLOCK_SIZE 4                                        // 4B
 #ifdef PSE_MODE
-    #define PAGE_ARENA_SIZE 0x400000                             // 4MB
-#else
     #define PAGE_ARENA_SIZE 0x100000                             // 1MB
+#else
+    #define PAGE_ARENA_SIZE 0x400000                             // 4MB
 #endif
 #define PAGE_START_ALLOCATE 0x100000                             // 1MB
 #define PAGE_END_ALLOCATE PAGE_START_ALLOCATE + PAGE_ARENA_SIZE  // 5MB without PSE / 2MB without PSE
