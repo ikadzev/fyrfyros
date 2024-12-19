@@ -48,11 +48,14 @@ void eoi(enum intel8259_type cont);
 void interrupt_handler(context* ctx);
 
 void trap_handler(context* ctx);
+void window_trap_handler(window* wind, context* ctx);
 
 void print_context(context* ctx);
+void window_print_context(window* wind, context* ctx);
 
 void panic_handler(context*);
 
 static void timer_interrupt(context* ctx);
+static void window_timer_interrupt(window* wind, context* ctx);
 
 #endif //FYRFYROS_HANDLER_INTERUPT_H
