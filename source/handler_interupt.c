@@ -14,7 +14,7 @@ void eoi(enum intel8259_type cont) {
 void interrupt_handler(context* ctx) {
     switch (ctx->vector) {
         case 0x20:
-            //timer_interrupt(ctx);
+            timer_interrupt(ctx);
             eoi(master);
             break;
             /*
@@ -99,8 +99,8 @@ void panic_handler(context* ctx) {
 }
 
 static void timer_interrupt(context* ctx) {
-    GLOBAL_COUNTER_TIMER++;
-    return;
+//    GLOBAL_COUNTER_TIMER++;
+//    return;
     u32 pos_carr = carriage_get_position();
 
     u16 len = 1;

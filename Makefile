@@ -16,7 +16,7 @@ OBJFLAGS := -I pe-i386 -O binary
 
 .PHONY: execute build clean
 execute: $(TARGET).img
-	qemu-system-i386 -hda mydisk.qcow2 -fda $<  -monitor stdio -boot a
+	qemu-system-i386 -fda $< -monitor stdio -boot a
 
 build: $(TARGET).img
 

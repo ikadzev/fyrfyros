@@ -12,16 +12,13 @@ u16 GLOBAL_QWE = 0;
 window window_create() {
     window wind;
     u16* display = NULL;
-    carriage* carr = NULL;
-
-    while (carr == NULL) carr = (carriage* ) kernel_calloc(1, sizeof(carriage));
     while (display == NULL) display = (u16*) kernel_calloc(SIZE_X_DISPLAY * SIZE_Y_DISPLAY, sizeof(u16));
 
     wind.x = WINDOW_MIN_X;
     wind.y = WINDOW_MIN_Y;
     wind.size_x = WINDOW_MAX_SIZE_X;
     wind.size_y = WINDOW_MAX_SIZE_Y;
-    wind.carriage_window = carr;
+//    wind.carriage_window = (carr) {0, 0, 0};
     wind.frame_window = (frame) {'#', green_f, gray_b, FRAME_MIN_WIDTH};
     wind.open = TRUE;
     wind.display = display;
@@ -42,13 +39,13 @@ void carriage_inc() {
 }
 
 void window_carriage_inc(window* wind) {
-    wind->carriage_window->x++;
-    wind->carriage_window->y += wind->carriage_window->x / wind->size_x;
-    wind->carriage_window->x %= wind->size_x;
+    wind->carriage_window.x++;
+    wind->carriage_window.y += wind->carriage_window.x / wind->size_x;
+    wind->carriage_window.x %= wind->size_x;
 
-    while (wind->carriage_window->y >= wind->size_y) {
+    while (wind->carriage_window.y >= wind->size_y) {
         window_carriage_shift_down_line(wind);
-//        wind->carriage_window->y--;
+//        wind->carriage_window.y--;
     }
 }
 
@@ -68,14 +65,14 @@ void carriage_shift(i32 shift) {
 
 void window_carriage_shift(window* wind, i32 shift) {
     if ( shift < 0) {
-        i32 x_temp = (i32) wind->carriage_window->x + shift % wind->size_x;
-        i32 y_temp = (i32) wind->carriage_window->y + shift / wind->size_x - (i32)(x_temp < 0);
+        i32 x_temp = (i32) wind->carriage_window.x + shift % wind->size_x;
+        i32 y_temp = (i32) wind->carriage_window.y + shift / wind->size_x - (i32)(x_temp < 0);
 
-        wind->carriage_window->y = (u16)(y_temp < 0 ? 0 : y_temp);
-        wind->carriage_window->x = (u16)(x_temp < 0 ? wind->size_x + x_temp : x_temp);
-        wind->carriage_window->x = (u16)(y_temp < 0 ? 0 : wind->carriage_window->x);
+        wind->carriage_window.y = (u16)(y_temp < 0 ? 0 : y_temp);
+        wind->carriage_window.x = (u16)(x_temp < 0 ? wind->size_x + x_temp : x_temp);
+        wind->carriage_window.x = (u16)(y_temp < 0 ? 0 : wind->carriage_window.x);
     } else {
-        wind->carriage_window->x += shift - 1;
+        wind->carriage_window.x += shift - 1;
         window_carriage_inc(wind);
     }
 }
@@ -89,11 +86,11 @@ void carriage_dec() {
 }
 
 void window_carriage_dec(window* wind) {
-    if ((!wind->carriage_window->x) && (!wind->carriage_window->y)) {
+    if ((!wind->carriage_window.x) && (!wind->carriage_window.y)) {
         return;
     }
-    wind->carriage_window->y -= (wind->carriage_window->x == 0 && wind->carriage_window->y);
-    wind->carriage_window->x = (wind->carriage_window->x ? wind->carriage_window->x : wind->size_x) - 1;
+    wind->carriage_window.y -= (wind->carriage_window.x == 0 && wind->carriage_window.y);
+    wind->carriage_window.x = (wind->carriage_window.x ? wind->carriage_window.x : wind->size_x) - 1;
 }
 
 void carriage_start_line() {
@@ -101,7 +98,7 @@ void carriage_start_line() {
 }
 
 void window_carriage_start_line(window* wind) {
-    wind->carriage_window->x = 0;
+    wind->carriage_window.x = 0;
 }
 
 void carriage_new_line() {
@@ -111,8 +108,8 @@ void carriage_new_line() {
 }
 
 void window_carriage_new_line(window* wind) {
-    wind->carriage_window->x--;
-    wind->carriage_window->y++;
+    wind->carriage_window.x--;
+    wind->carriage_window.y++;
     window_carriage_inc(wind);
 }
 
@@ -131,8 +128,8 @@ void window_carriage_set_position(window* wind, u16 x, u16 y) {
 //        1/0;
         return;
     }
-    wind->carriage_window->x = x;
-    wind->carriage_window->y = y;
+    wind->carriage_window.x = x;
+    wind->carriage_window.y = y;
 }
 
 u32 carriage_get_position() {
@@ -140,7 +137,7 @@ u32 carriage_get_position() {
 }
 
 u32 window_carriage_get_position(window* wind) {
-    return (((u32) wind->carriage_window->x) << 16 ) | wind->carriage_window->y;
+    return (((u32) wind->carriage_window.x) << 16 ) | wind->carriage_window.y;
 }
 
 void carriage_shift_up_line() {
@@ -184,7 +181,7 @@ void window_clear_screen(window* wind) {
     }
 
     window_carriage_set_position(wind, 0, 0);
-    wind->carriage_window->now_char = 0;
+    wind->carriage_window.now_char = 0;
     window_vga_clear_screen(wind);
 }
 
@@ -199,7 +196,7 @@ void window_vga_clear_screen(window* wind) {
     }
 
     window_carriage_set_position(wind, 0, 0);
-    wind->carriage_window->now_char = 0;
+    wind->carriage_window.now_char = 0;
 }
 
 void vga_print_char(char sym, color_front front, color_back back, u16 x, u16 y) {
@@ -241,14 +238,14 @@ void vga_print_char_carriage(char sym, color_front front, color_back back) {
 
 void window_vga_print_char_carriage(window* wind, byte sym, color_front front, color_back back) {
     u16 frame_width = wind->frame_window.width;
-    u32 pos_carr =  wind->carriage_window->y * SIZE_X_DISPLAY + wind->carriage_window->x;
+    u32 pos_carr =  wind->carriage_window.y * SIZE_X_DISPLAY + wind->carriage_window.x;
     u32 pos_vga = 2 * (pos_carr + (wind->y) * SIZE_X_DISPLAY + wind->x) + START_DISPLAY_ADDRESS;
     u16 res = (front | back | (u16)sym);
     switch (sym) {
         case '\t': {
             do {
                 window_vga_print_char_carriage(wind, ' ', front, back);
-            } while (wind->carriage_window->x % 8);
+            } while (wind->carriage_window.x % 8);
             break;
         }
         case '\r': {
@@ -352,7 +349,7 @@ void window_show(window* wind) {
         return;
     }
     u32 coords = window_carriage_get_position(wind);
-    u16 copy_now_char = wind->carriage_window->now_char;
+    u16 copy_now_char = wind->carriage_window.now_char;
     window_carriage_set_position(wind, 0, 0);
     for (u16 i = 0; i < wind->size_y; i++) {
         for (u16 j = 0; j < wind->size_x; j++) {
@@ -362,7 +359,7 @@ void window_show(window* wind) {
     }
     GLOBAL_QWE++;
     window_carriage_set_position(wind, coords >> 16, coords);
-    wind->carriage_window->now_char = copy_now_char;
+    wind->carriage_window.now_char = copy_now_char;
     window_draw_frame(wind);
 }
 
@@ -372,13 +369,11 @@ void window_open(window* wind) {
 }
 
 void window_close(window* wind) {
-    carriage copy_carr = *wind->carriage_window;
+    carriage copy_carr = wind->carriage_window;
     window_vga_clear_screen(wind);
     window_close_frame(wind);
 
-    wind->carriage_window->x = copy_carr.x;
-    wind->carriage_window->y = copy_carr.y;
-    wind->carriage_window->now_char = copy_carr.now_char;
+    wind->carriage_window = copy_carr;
     wind->open = FALSE;
 }
 
@@ -422,7 +417,7 @@ void window_draw_frame(window* wind) {
     }
 
     u16 width_frame = wind->frame_window.width;
-    u16 save_now_char = wind->carriage_window->now_char;
+    u16 save_now_char = wind->carriage_window.now_char;
     u32 save_coord = window_carriage_get_position(wind);
 
     for (u16 i = 0; i < wind->size_x + 2*width_frame; i++) {
@@ -473,7 +468,7 @@ void window_draw_frame(window* wind) {
     *((u16*) START_DISPLAY_ADDRESS + wind->x + wind->size_x + width_frame - 1 + SIZE_X_DISPLAY * (wind->y + wind->size_y + width_frame - 1)) = res;
 
     window_carriage_set_position(wind, save_coord >> 16, save_coord);
-    wind->carriage_window->now_char = save_now_char;
+    wind->carriage_window.now_char = save_now_char;
 }
 
 void window_close_frame(window* wind) {

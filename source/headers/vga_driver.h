@@ -71,7 +71,7 @@ typedef struct {
     u16 y;
     u16 size_x;
     u16 size_y;
-    carriage* carriage_window;
+    carriage carriage_window;
     frame frame_window;
     byte open;
     u16* display; // [80*25];
