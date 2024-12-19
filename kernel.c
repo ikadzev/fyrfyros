@@ -7,6 +7,7 @@
 #include "source/headers/page_translator.h"
 #include "source/headers/page_allocator.h"
 #include "source/headers/floppy_driver.h"
+#include "source/headers/loger.h"
 
 void print_logo();
 
@@ -14,7 +15,7 @@ void kernel_entry() {
     cli();
     kernel_start_allocator();
     page_start_allocator();
-    init_virtual_address();
+    //init_virtual_address();
     create_lidt();
     configure_intel8258A_all();
     vga_clear_screen();
@@ -22,16 +23,11 @@ void kernel_entry() {
     //floppy_print_DOR();
     sti();
     floppy_init();
-    floppy_motor_start(0);
-    //floppy_print_DOR();
-    //floppy_print_MSR();
-    byte * r = (byte *)0x1000;
-    r[0] = 0x11;
-    r = flpydsk_read_sector(1);
-    print_hex((u32)r);
-    for (int i = 0; i < 10; ++i) {
-        print_unsigned_hex(r[i]);
-    }
+    //log_massage("DONE", -1, 0);
+    byte* test = (byte*)0x2000;
+    floppy_read_block(38, test, 1);
+    floppy_read_block(1, test, 1);
+    log_warning("stop", -1,0);
     for (;;);
 }
 

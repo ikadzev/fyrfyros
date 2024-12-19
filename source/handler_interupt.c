@@ -5,7 +5,7 @@
 #include "headers/handler_interupt.h"
 #include "headers/intel8259A.h"
 
-extern void expose__floppy_irq();
+extern void floppy_irq();
 
 u32 GLOBAL_COUNTER_TIMER = 0x0;
 
@@ -20,7 +20,7 @@ void interrupt_handler(context* ctx) {
             eoi(master);
             break;
         case 0x26:
-            expose__floppy_irq();
+            floppy_irq();
             eoi(master);
             break;
         default:

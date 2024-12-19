@@ -1,10 +1,10 @@
 //
 // Created by modnick on 20.11.2024.
 //
-#include "_flags.h"
-
 #ifndef FYRFYROS_MACROSES_H
 #define FYRFYROS_MACROSES_H
+
+#include "_flags.h"
 
 #define TRUE 1
 #define FALSE 0
