@@ -16,7 +16,7 @@ void eoi(enum intel8259_type cont) {
 void interrupt_handler(context* ctx) {
     switch (ctx->vector) {
         case 0x20:
-            //timer_interrupt(ctx);
+            timer_interrupt(ctx);
             eoi(master);
             break;
         case 0x26:
@@ -39,6 +39,13 @@ void interrupt_handler(context* ctx) {
 
 void trap_handler(context* ctx) {
     print_context(ctx);
+//    sti();
+    for (;;);
+}
+
+void window_trap_handler(window* wind, context* ctx) {
+    window_print_context(wind, ctx);
+    sti();
     for (;;);
 }
 
@@ -63,12 +70,35 @@ void print_context(context* ctx) {
     print_fyr("  error code = %x\r\n", ctx->error_code);
 }
 
+void window_print_context(window* wind, context* ctx) {
+    window_vga_clear_screen(wind);
+    window_print_fyr(wind, "\r\nKernel panic: unhandled interrupt %x, interrupted process context:\r\n", ctx->vector);
+    window_print_fyr(wind, "  EAX = %x ", ctx->eax);
+    window_print_fyr(wind, "ECX = %x ", ctx->ecx);
+    window_print_fyr(wind, "EDX = %x ", ctx->edx);
+    window_print_fyr(wind, "EBX = %x\r\n", ctx->ebx);
+    window_print_fyr(wind, "  ESP = %x ", ctx->esp);
+    window_print_fyr(wind, "EBP = %x ", ctx->ebp);
+    window_print_fyr(wind, "ESI = %x ", ctx->esi);
+    window_print_fyr(wind, "EDI = %x\r\n", ctx->edi);
+    window_print_fyr(wind, "  DS  = %x ", ctx->ds);
+    window_print_fyr(wind, "ES  = %x ", ctx->es);
+    window_print_fyr(wind, "FS  = %x ", ctx->fs);
+    window_print_fyr(wind, "GS  = %x\r\n", ctx->gs);
+    window_print_fyr(wind, "  CS  = %x ", ctx->cs);
+    window_print_fyr(wind, "EIP = %x ", ctx->eip);
+    window_print_fyr(wind, "EFLAGS = %x\r\n", ctx->eflags);
+    window_print_fyr(wind, "  error code = %x\r\n", ctx->error_code);
+}
+
 void panic_handler(context* ctx) {
     print_context(ctx);
     for (;;);
 }
 
 static void timer_interrupt(context* ctx) {
+//    GLOBAL_COUNTER_TIMER++;
+//    return;
     u32 pos_carr = carriage_get_position();
 
     u16 len = 1;
@@ -89,4 +119,27 @@ static void timer_interrupt(context* ctx) {
 
     carriage_set_position(pos_carr >> 16, (u16)pos_carr);
     carriage_set_position(0, 0);
+}
+
+static void window_timer_interrupt(window* wind, context* ctx) {
+    u32 pos_carr = window_carriage_get_position(wind);
+
+    u16 len = 1;
+    for (u32 i = GLOBAL_COUNTER_TIMER / 10; i > 0; i /= 10) len++;
+
+    window_carriage_set_position(wind, 0, wind->size_y - 3);
+    window_print_fyr(wind, "+");
+    for (u16 i = 0; i < len + 2; i++) window_print_fyr(wind, "-");
+    window_print_fyr(wind, "+");
+
+    window_carriage_set_position(wind, 0, wind->size_y - 2);
+    window_print_fyr(wind, "| %d |", GLOBAL_COUNTER_TIMER++);
+
+    window_carriage_set_position(wind, 0, wind->size_y - 1);
+    window_print_fyr(wind, "+");
+    for (u16 i = 0; i < len + 2; i++) window_print_fyr(wind, "-");
+    window_print_fyr(wind, "+");
+
+    window_carriage_set_position(wind, pos_carr >> 16, (u16)pos_carr);
+    window_carriage_set_position(wind, 0, 0);
 }
