@@ -5,6 +5,7 @@
 #ifndef FYRFYROS_KERNEL_ALLOCATOR_H
 #define FYRFYROS_KERNEL_ALLOCATOR_H
 
+#include "_flags.h"
 #include "macroses.h"
 
 #define KERNEL_SIZE_ADDRESS 4

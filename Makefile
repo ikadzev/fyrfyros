@@ -11,12 +11,12 @@ OBJS_ASM := $(SRCS_ASM:$(SOURCE_DIR)/asm/%.asm=$(BUILD_DIR)/%_asm.o)
 HEADS := $(shell find $(HEADERS_DIR) -name '*.h')
 
 CFLAGS := -m32 -ffreestanding -fno-pie -c
-LDFLAGS := -m i386pe -Ttext=0x20200
+LDFLAGS := -m elf_i386 -Ttext=0x20200
 OBJFLAGS := -I pe-i386 -O binary
 
 .PHONY: execute build clean
 execute: $(TARGET).img
-	qemu-system-i386 -fda $< -monitor stdio
+	qemu-system-i386 -hda mydisk.qcow2 -fda $<  -monitor stdio -boot a
 
 build: $(TARGET).img
 

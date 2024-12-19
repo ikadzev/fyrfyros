@@ -5,6 +5,7 @@
 #ifndef FYRFYROS_TRAMPLINS_H
 #define FYRFYROS_TRAMPLINS_H
 
+#include "_flags.h"
 #include "macroses.h"
 
 #define COUNT_INTERRUPT 256
@@ -38,6 +39,7 @@ typedef struct table_gate_descriptor {
     u16 size;
     u32 address;
 } table_gate_descriptor;
+#pragma pack(pop)
 
 static gate_descriptor *generate_idt();
 static gate_descriptor generate_gate_descriptor(void* tramplin_ptr, enum gate_type type, enum descriptor_privilege_level level);

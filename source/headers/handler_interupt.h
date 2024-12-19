@@ -5,10 +5,10 @@
 #ifndef FYRFYROS_HANDLER_INTERUPT_H
 #define FYRFYROS_HANDLER_INTERUPT_H
 
+#include "_flags.h"
 #include "vga_driver.h"
 #include "printf.h"
 #include "intel8259A.h"
-//#include "macroses.h"
 
 #pragma pack(push, 1)
 typedef struct context {

@@ -3,71 +3,89 @@
 //
 
 #include "headers/page_translator.h"
+#include "headers/page_allocator.h"
+#include "headers/asm_fync.h"
 
 
 void init_virtual_address() {
-
-}
-
-void init_virtual_kernel() {
-    create_virtual_kernel();
-}
 #ifdef PSE_MODE
-void create_virtual_kernel() {
-    for (u32 i = 0; i < 1024; i++) {
-        *((u32*)(OFFSET_PAGE_DIR + i * 4)) = 0;
+    create_virtual_kernel_with_pse();
+#else
+    create_virtual_kernel_without_pse();
+#endif
+}
+
+#ifdef PSE_MODE
+void create_virtual_kernel_with_pse() {
+    u32* page_dir = kernel_calloc(SIZE_TABLE, sizeof(u32));
+    for (int i = 0; i < KERNEL_SIZE_PD; ++i) {
+        page_dir[i] = create_pde_with_pse(1,0);
     }
-    *((u32*)(OFFSET_PAGE_DIR)) =  0b10000111;
-    *((u32*)(OFFSET_PAGE_DIR + 4)) = (1 << 22) | 0b10000111;
-    __asm__ __volatile__ (
-            ".intel_syntax noprefix\n\t"
-            "push eax\n\t"
-            "mov eax, 0x1000\n\t"
-            "mov cr3, eax\n\t"
-            "mov eax, cr4\n\t"
-            "or eax, 0b00000000000000000000000000010000\n\t"
-            "mov cr4, eax\n\t"
-            "mov eax, cr0\n\t"
-            "or eax, 0b10000000000000000000000000000000\n\t"
-            "mov cr0, eax\n\t"
-            "pop eax\n\t"
-            ".att_syntax prefix\n\t"
-            );
+    set_CR3(page_dir);
+    expose_bit_CR4(5);
+    expose_bit_CR0(32);
+}
+u32 create_pde_with_pse(byte write_mode, byte user_mode) {
+    u32 pde = 1;
+    u32 address = page_malloc(1);
+    address = (address - PAGE_START_ALLOCATE) / 4;
+    u32 address_high = address >> 10;
+    address = address - (address_high << 10);
+    pde |= (write_mode & 1) << 1;
+    pde |= (user_mode & 1) << 2;
+    pde |= 1 << 7;
+    pde |= (address_high << 13);
+    pde |= (address << 22);
+    return pde;
+}
+void delete_pde_with_pse(u32 pde){
+    u32 ptr_pde = pde >> 22;
+    ptr_pde |= (pde >> 13 ) << 24 >> 14;
+    ptr_pde = (ptr_pde * 4) + PAGE_START_ALLOCATE;
+    page_free(ptr_pde);
 }
 #else
-void create_virtual_kernel() {
-    for (u32 i = 0; i < 1024; i++) {
-        *((u32*)(OFFSET_PAGE_DIR + i * 4)) = 0;
-    }
-    u32* base_page = kernel_malloc(SIZE_TABLE);
-    *((u32*)(OFFSET_PAGE_DIR)) = (u32)base_page + 0b111;
-    for (u32 i = 0; i < 1024; i++){
-        if(i == 2) {
-            *(base_page + i) = 0;
-        } else {
-            *(base_page + i) = i * 0x1000 + 0b111;
-            //print_fyr("%x ", *(base_page + i));
+void create_virtual_kernel_without_pse() {
+    u32* page_dir = kernel_calloc(SIZE_TABLE, sizeof(u32));
+    for (int i = 0; i < KETNEL_SIZE_PD; ++i) {
+        page_dir[i] = create_pde_without_pse(1,0);
+        u32* ptr = (u32*)((page_dir[i] >> 12) << 12);
+        for (u32 j = 0; j < SIZE_TABLE; ++j){
+            ptr[j] = create_pte_without_pse(1,0);
         }
     }
-    base_page = kernel_malloc(SIZE_TABLE);
-    print_hex((u32)base_page);
-    *((u32*)(OFFSET_PAGE_DIR + 4)) = (u32)base_page + 0b111;
-    for (u32 i = 0; i < 1024; i++){
-        *(base_page + i) = 0x400000 + i * 0x1000 + 0b111;
+    set_CR3(page_dir);
+    clear_bit_CR4(5);
+    expose_bit_CR0(32);
+}
+u32 create_pde_without_pse(byte write_mode, byte user_mode) {
+    u32* address = kernel_calloc(SIZE_TABLE, sizeof(u32));
+    u32 pde = 1;
+    pde |= (write_mode & 1) << 1;
+    pde |= (user_mode & 1) << 2;
+    pde |= ((u32)address);
+    return pde;
+}
+void delete_pde_without_pse(u32 pde) {
+    u32* ptr_pde = (u32*)((pde << 12) >> 12);
+    for (int i = 0; i < SIZE_TABLE; ++i) {
+        delete_pte_without_pse(ptr_pde[i]);
     }
-    __asm__ __volatile__ (
-            ".intel_syntax noprefix\n\t"
-            "push eax\n\t"
-            "mov eax, 0x1000\n\t"
-            "mov cr3, eax\n\t"
-            "mov eax, cr4\n\t"
-            "and eax, 0b11111111111111111111111111101111\n\t"
-            "mov cr4, eax\n\t"
-            "mov eax, cr0\n\t"
-            "or eax, 0b10000000000000000000000000000000\n\t"
-            "mov cr0, eax\n\t"
-            "pop eax\n\t"
-            ".att_syntax prefix\n\t"
-            );
+    kernel_free(ptr_pde);
+}
+u32 create_pte_without_pse(byte write_mode, byte user_mode) {
+    u32 pte = 1;
+    u32 address = page_malloc(1);
+    address = (address - PAGE_START_ALLOCATE) >> 2;
+    pte |= (write_mode & 1) << 1;
+    pte |= (user_mode & 1) << 2;
+    pte |= (address << 12);
+    return pte;
+}
+void delete_pte_without_pse(u32 pte) {
+    u32 ptr_pte = pte >> 12;
+    ptr_pte = (ptr_pte * 4) + PAGE_START_ALLOCATE;
+    page_free(ptr_pte);
 }
 #endif
+

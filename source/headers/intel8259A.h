@@ -4,7 +4,9 @@
 
 #ifndef FYRFYROS_INTEL8259A_H
 
+#include "_flags.h"
 #include "macroses.h"
+#include "asm_fync.h"
 
 #define MAGIC_CONST 0xAD
 
@@ -21,10 +23,6 @@ enum intel8259_type {
     slave,
     master
 };
-
-byte inb(u16 port);
-void outb(u16 port, byte data);
-
 
 void configure_intel8259(u16 command_port, u16 data_port, enum intel8259_type type);
 void configure_intel8258A_all();

@@ -5,6 +5,7 @@
 #ifndef FYRFYROS_VGA_DRIVER_H
 #define FYRFYROS_VGA_DRIVER_H
 
+#include "_flags.h"
 #include "macroses.h"
 
 #define START_DISPLAY_ADDRESS 0xB8000
