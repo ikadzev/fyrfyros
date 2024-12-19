@@ -16,7 +16,7 @@ void eoi(enum intel8259_type cont) {
 void interrupt_handler(context* ctx) {
     switch (ctx->vector) {
         case 0x20:
-            timer_interrupt(ctx);
+            //timer_interrupt(ctx);
             eoi(master);
             break;
         case 0x26:
@@ -44,7 +44,7 @@ void trap_handler(context* ctx) {
 }
 
 void window_trap_handler(window* wind, context* ctx) {
-    window_print_context(wind, ctx);
+    //window_print_context(wind, ctx);
     sti();
     for (;;);
 }

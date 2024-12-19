@@ -53,31 +53,32 @@ typedef enum color_back {
     gray_b        = 0x7000,
 } color_back;
 
-typedef struct {
+
+typedef struct carriage{
     u16 x;
     u16 y;
     u16 now_char;
 } carriage;
 
-typedef struct {
+typedef struct frame{
+    enum color_front front;
+    enum color_back back;
     char symbol;
-    color_front front;
-    color_back back;
     u16 width;
 } frame;
 
-typedef struct {
+typedef struct window{
     u16 x;
     u16 y;
     u16 size_x;
     u16 size_y;
-    carriage carriage_window;
-    frame frame_window;
-    byte open;
+    u32 open;
+    struct frame *frame_window;
+    struct carriage *carriage_window;
     u16* display; // [80*25];
 } window;
 
-window window_create();
+window* window_create();
 
 void carriage_inc();                       // сдвигает каретку вправо
 void carriage_shift(i32 shift);            // сдвигает каретку на shift вправо

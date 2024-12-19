@@ -32,7 +32,11 @@ void kernel_entry() {
     configure_intel8258A_all();
     vga_clear_screen();
     sti();
-    window_test_frame_all();
+    floppy_init();
+    byte* test = (byte*)0x3000;
+    floppy_read_block(1,test, 2);
+    log_warning("ddd", -1, 0);
+    //window_test_frame_all();
     for (;;);
 }
 
@@ -148,172 +152,167 @@ void window_print_logo1(window* wind) {
 
 
 void window_test_resize_x() {
-    window wind = window_create();
-
-    window_print_logo(&wind);
+    window *wind = window_create();
+    window_print_logo(wind);
     sleep(1);
 
-    window_resize_x(&wind, -40);
+    window_resize_x(wind, -40);
     sleep(2);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(3);
+    window_set_position(wind, 0, 40);
+    sleep(2);
+    window_print_logo(wind);
+    sleep(1);
 
-    window_set_position(&wind, 0, 40);
+    window_show(wind);
     sleep(2);
 
-    window_print_logo(&wind);
-    sleep(1);
-
-    window_show(&wind);
-    sleep(2);
-
-    window_set_position(&wind, 0, 0);
+    window_set_position(wind, 0, 0);
     sleep(3);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(3);
 
-    window_resize_x(&wind, 40);
+    window_resize_x(wind, 40);
     sleep(3);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(2);
 }
-
 void window_test_resize_y() {
-    window wind = window_create();
+    window* wind = window_create();
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(1);
 
-    window_resize_y(&wind, -13);
+    window_resize_y(wind, -13);
     sleep(1);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(1);
 
-    window_set_position(&wind, 13, 0);
+    window_set_position(wind, 13, 0);
     sleep(1);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_set_position(&wind, 0, 0);
+    window_set_position(wind, 0, 0);
     sleep(3);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(3);
 
-    window_resize_y(&wind, 13);
+    window_resize_y(wind, 13);
     sleep(2);
 
-//    window_vga_print_char(&wind, 'Q', red_f, green_b, 0, SIZE_Y_DISPLAY - 1);
-//    window_vga_print_char(&wind, 'W', red_f, green_b, 1, SIZE_Y_DISPLAY - 1);
-//    window_vga_print_char(&wind, 'E', red_f, green_b, 2, SIZE_Y_DISPLAY - 1);
+//    window_vga_print_char(wind, 'Q', red_f, green_b, 0, SIZE_Y_DISPLAY - 1);
+//    window_vga_print_char(wind, 'W', red_f, green_b, 1, SIZE_Y_DISPLAY - 1);
+//    window_vga_print_char(wind, 'E', red_f, green_b, 2, SIZE_Y_DISPLAY - 1);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
 }
-
 void window_test_resize_all() {
     window_test_resize_x();
     window_test_resize_y();
 }
 
-void window_test_frame_1() {
-    window wind = window_create();
+void window_test_frame_1()  {
+    window* wind = window_create();
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(1);
 
-    window_resize_x(&wind, -40);
+    window_resize_x(wind, -40);
     sleep(1);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(2);
 
-    window_set_position(&wind, FRAME_MIN_WIDTH, 40 + FRAME_MIN_WIDTH);
+    window_set_position(wind, FRAME_MIN_WIDTH, 40 + FRAME_MIN_WIDTH);
     sleep(3);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_set_position(&wind, FRAME_MIN_WIDTH, FRAME_MIN_WIDTH);
+    window_set_position(wind, FRAME_MIN_WIDTH, FRAME_MIN_WIDTH);
     sleep(3);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(1);
 
-    window_show(&wind);
+    window_show(wind);
     sleep(3);
 
-    window_resize_x(&wind, 40);
+    window_resize_x(wind, 40);
     sleep(3);
 
-    window_print_logo(&wind);
+    window_print_logo(wind);
 }
 
 void window_test_frame_2() {
-        window wind = window_create();
+        window* wind = window_create();
 
-        window_print_logo(&wind);
+        window_print_logo(wind);
         sleep(1);
 
-        window_resize_y(&wind, -13);
+        window_resize_y(wind, -13);
         sleep(1);
 
-        window_print_logo(&wind);
+        window_print_logo(wind);
         sleep(1);
 
-        window_set_position(&wind, 13 + FRAME_MIN_WIDTH, FRAME_MIN_WIDTH);
+        window_set_position(wind, 13 + FRAME_MIN_WIDTH, FRAME_MIN_WIDTH);
         sleep(1);
 
-        window_print_logo(&wind);
+        window_print_logo(wind);
         sleep(1);
 
-        window_show(&wind);
+        window_show(wind);
         sleep(1);
 
-        window_set_position(&wind, 10, FRAME_MIN_WIDTH);
+        window_set_position(wind, 10, FRAME_MIN_WIDTH);
         sleep(3);
 
-        window_show(&wind);
+        window_show(wind);
         sleep(1);
 
-        window_show(&wind);
+        window_show(wind);
         sleep(1);
 
-        window_show(&wind);
+        window_show(wind);
         sleep(3);
 
-        window_resize_y(&wind, 13);
+        window_resize_y(wind, 13);
         sleep(2);
 
-//    window_vga_print_char(&wind, 'Q', red_f, green_b, 0, SIZE_Y_DISPLAY - 1);
-//    window_vga_print_char(&wind, 'W', red_f, green_b, 1, SIZE_Y_DISPLAY - 1);
-//    window_vga_print_char(&wind, 'E', red_f, green_b, 2, SIZE_Y_DISPLAY - 1);
-        window_print_logo(&wind);
+//    window_vga_print_char(wind, 'Q', red_f, green_b, 0, SIZE_Y_DISPLAY - 1);
+//    window_vga_print_char(wind, 'W', red_f, green_b, 1, SIZE_Y_DISPLAY - 1);
+//    window_vga_print_char(wind, 'E', red_f, green_b, 2, SIZE_Y_DISPLAY - 1);
+        window_print_logo(wind);
 }
 
 void window_test_frame_all() {
