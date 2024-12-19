@@ -32,6 +32,7 @@ typedef struct gate_descriptor {
     byte reserve3 : 1;
     u16 shift_height;
 } gate_descriptor;
+#pragma pack(pop)
 
 typedef struct table_gate_descriptor {
     u16 size;
